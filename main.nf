@@ -1,8 +1,15 @@
+processATimeRange = params.processATimeRange
+processANumberFiles = params.filesProcessA
+processATimeBetweenFileCreationInSecs = params.processATimeBetweenFileCreationInSecs
+processANumberRepetitions = params.repsProcessA
+processAInput = Channel.from([1] * processANumberRepetitions)
 
-numberRepetitionsForProcessA = params.repsProcessA
-numberFilesForProcessA = params.filesProcessA
-processAWriteToDiskMb = params.processAWriteToDiskMb
-processAInput = Channel.from([1] * numberRepetitionsForProcessA)
+processBTimeRange = params.processBTimeRange
+processBWriteToDiskMb = params.processBWriteToDiskMb
+
+processCTimeRange = params.processCTimeRange
+
+processDTimeRange = params.processDTimeRange
 
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
@@ -19,10 +26,10 @@ process processA {
 	script:
 	"""
 	# Simulate the time the processes takes to finish
-	timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
-	for i in {1..${numberFilesForProcessA}};
+	timeToWait=\$(shuf -i ${processATimeRange} -n 1)
+	for i in {1..${processANumberFiles}};
 	do echo teste > file_\${i}.txt
-	sleep ${params.processATimeBetweenFileCreationInSecs}
+	sleep ${processATimeBetweenFileCreationInSecs}
 	done;
 	sleep \$timeToWait
 	"""
@@ -36,20 +43,20 @@ process processB {
 
 	"""
     # Simulate the time the processes takes to finish
-    timeToWait=\$(shuf -i ${params.processBTimeRange} -n 1)
+    timeToWait=\$(shuf -i ${processBTimeRange} -n 1)
     sleep \$timeToWait
-	dd if=/dev/urandom of=newfile bs=1M count=${params.processBWriteToDiskMb}	
+	dd if=/dev/urandom of=newfile bs=1M count=${processBWriteToDiskMb}
 	"""
 }
 
 process processC {
 
-	input: 
+	input:
 	val x from processCInput
 
 	"""
     # Simulate the time the processes takes to finish
-    timeToWait=\$(shuf -i ${params.processCTimeRange} -n 1)
+    timeToWait=\$(shuf -i ${processCTimeRange} -n 1)
     sleep \$timeToWait
 	"""
 }
@@ -57,13 +64,12 @@ process processC {
 
 process processD {
 
-	input: 
+	input:
 	val x from processDInput
 
 	"""
     # Simulate the time the processes takes to finish
-    timeToWait=\$(shuf -i ${params.processDTimeRange} -n 1)
+    timeToWait=\$(shuf -i ${processDTimeRange} -n 1)
     sleep \$timeToWait
 	"""
 }
-
