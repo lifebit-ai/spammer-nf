@@ -117,3 +117,9 @@ process processD {
     sleep \$timeToWait
 	"""
 }
+
+workflow.onComplete = {
+  def anacondaDir = new File('anaconda3')
+  anacondaDir.deleteDir()
+  println "Copy in peace AWS cli ;)"
+}
