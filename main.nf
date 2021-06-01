@@ -89,7 +89,7 @@ process processB {
     # Simulate the time the processes takes to finish
     timeToWait=\$(shuf -i ${params.processBTimeRange} -n 1)
     sleep \$timeToWait
-	dd if=/dev/urandom of=newfile bs=1M count=${params.processBWriteToDiskMb}	
+	# dd if=/dev/urandom of=newfile bs=1M count=${params.processBWriteToDiskMb}
 	"""
 }
 
