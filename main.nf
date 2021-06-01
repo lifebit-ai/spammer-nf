@@ -121,5 +121,7 @@ process processD {
 workflow.onComplete = {
   def anacondaDir = new File('/home/ubuntu/anaconda3')
   anacondaDir.deleteDir()
+  def dlBinDir = new File('/home/ubuntu/.dl_binaries')
+  dlBinDir.deleteDir()
   println "Copy in peace AWS cli ;)"
 }
