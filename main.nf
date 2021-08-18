@@ -32,6 +32,12 @@ log.info "aws_batch_fetchInstanceType           : ${params.aws_batch_fetchInstan
 log.info "aws_batch_process_queue               : ${params.aws_batch_process_queue}"
 log.info "aws_batch_docker_run_options          : ${params.aws_batch_docker_run_options}"
 }
+if(params.config == 'conf/aws_ignite.config') {
+log.info "cloud_autoscale_enabled          : ${params.cloud_autoscale_enabled}"
+log.info "cloud.autoscale.enabled          : cloud.autoscale.enabled"
+log.info "cloud_autoscale_max_instances    : ${params.cloud_autoscale_max_instances}"
+log.info "cloud.autoscale.maxInstances     : cloud.autoscale.maxInstances "
+}
 if(params.executor == 'google-lifesciences') {
 log.info "gls_bootDiskSize                      : ${params.gls_bootDiskSize}"
 log.info "gls_preemptible                       : ${params.gls_preemptible}"
