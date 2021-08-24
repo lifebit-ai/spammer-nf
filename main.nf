@@ -57,7 +57,7 @@ processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
 process processA {
-	publishDir "${params.output}/${task.hash}", mode: 'copy'
+	publishDir "${params.output}/${task.hash}/", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
 
 	input:
@@ -69,6 +69,7 @@ process processA {
 	val x into processCInput
 	val x into processDInput
 	file "*.txt"
+	file("command-logs") optional true
 
 	script:
 	"""
@@ -82,6 +83,8 @@ process processA {
 	done;
 	sleep \$timeToWait
 	echo "task cpus: ${task.cpus}"
+
+	${params.savescript}
 	"""
 }
 
