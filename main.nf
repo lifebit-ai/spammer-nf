@@ -53,7 +53,7 @@ processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
 process processA {
-	publishDir "${params.output}/${task.hash}", mode: 'copy'
+	publishDir "${params.output}/processA/${task.hash}", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
 
 	input:
@@ -84,17 +84,19 @@ process processA {
 }
 
 process processB {
-	publishDir "${params.output}/${task.hash}", mode: 'copy'
+	publishDir "${params.output}/processB/${task.hash}", mode: 'copy'
 	input:
 	val x from processAOutput
 
 
 	"""
+	pwd=`basename \${PWD} | cut -c1-6`
+	echo \$pwd
 	${params.pre_script}
     # Simulate the time the processes takes to finish
     timeToWait=\$(shuf -i ${params.processBTimeRange} -n 1)
     sleep \$timeToWait
-	dd if=/dev/urandom of=newfile bs=1M count=${params.processBWriteToDiskMb}
+	dd if=/dev/urandom bs="${params.processBWriteToDiskMb}"M count=1 | base64 > "\${pwd}"_processB_file.txt
 	${params.post_script}
 	"""
 }
