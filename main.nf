@@ -33,6 +33,8 @@ log.info "testParam2                            : ${new1}"
 log.info "testParam3                            : ${masked_Private}"
 log.info "testParam4                            : ${masked_wrkspace}"
 log.info "testParam5                            : ${workspaceVar}"
+log.info "testParam6                            : ${test_private}"
+log.info "testParam7                            : ${test_shared}"
 if(params.executor == 'awsbatch') {
 log.info "aws_batch_cliPath                     : ${params.aws_batch_cliPath}"
 log.info "aws_batch_fetchInstanceType           : ${params.aws_batch_fetchInstanceType}"
