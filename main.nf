@@ -32,7 +32,7 @@ log.info "jobid                                 : ${JOB_ID}"
 log.info "jobuserid                             : ${JOB_USER_ID}"
 log.info "jobteamid                             : ${JOB_TEAM_ID}"
 log.info "jobprojectid                          : ${JOB_PROJECT_ID}"
-log.info "resultsLoc                            : ${JOBS_RESULTS_LOCATION}"
+log.info "resultsLoc                            : ${JOB_RESULTS_LOCATION}"
 log.info "workdirLoc                            : ${JOB_WORKDIR_LOCATION}"
 if(params.executor == 'awsbatch') {
 log.info "aws_batch_cliPath                     : ${params.aws_batch_cliPath}"
