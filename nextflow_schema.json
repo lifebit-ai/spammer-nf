@@ -76,7 +76,7 @@
         },
         "dataLocation": {
             "type": "string",
-            "default": "s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files"
+            "default": "s3://gel-lifebit-featured-datasets/pipelines/spammer-nf/input_files"
         },
         "fileSuffix": {
             "type": "string"
