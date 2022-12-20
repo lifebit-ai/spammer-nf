@@ -34,6 +34,7 @@ log.info "jobteamid                             : ${params.jobteamid}"
 log.info "jobprojectid                          : ${params.jobprojectid}"
 log.info "resultsLoc                            : ${params.resultsLoc}"
 log.info "workdirLoc                            : ${params.workdirLoc}"
+log.info "testParam4                            : ${params.masked_wrkspace}"
 if(params.executor == 'awsbatch') {
 log.info "aws_batch_cliPath                     : ${params.aws_batch_cliPath}"
 log.info "aws_batch_fetchInstanceType           : ${params.aws_batch_fetchInstanceType}"
