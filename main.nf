@@ -80,6 +80,10 @@ process processA {
 	sleep \$timeToWait
 	echo "task cpus: ${task.cpus}"
 	${params.post_script}
+	
+	# Test for retries:
+	echo "task attempt: ${task.attempt}"
+	if [ ${task.attempt} -lt 5 ]; then echo "Failing because task.attempt ${task.attempt} is less than 5" ; exit 13; fi
 	"""
 }
 
