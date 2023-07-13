@@ -51,6 +51,7 @@ numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
+azure_file_ch = Channel.fromPath("az://m2gengenomics.dfs.core.windows.net/nextflow/references/adapters.fa")
 
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
@@ -59,15 +60,18 @@ process processA {
 	input:
 	val x from processAInput
 	file(a_file) from processAInputFiles
+	file(azure_file) from azure_file_ch
 
 	output:
 	val x into processAOutput
 	val x into processCInput
 	val x into processDInput
 	file "*.txt"
+	file "myoutput.txt"
 
 	script:
 	"""
+	head -n 1000 ${azure_file} > myoutput.txt
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
