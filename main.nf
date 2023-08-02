@@ -59,7 +59,6 @@ process processA {
 	input:
 	val x from processAInput
 	file(a_file) from processAInputFiles
-	file(azure_file) from azure_file_ch
 
 	output:
 	val x into processAOutput
