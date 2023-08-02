@@ -69,7 +69,6 @@ process processA {
 
 	script:
 	"""
-	head -n 1000 ${azure_file} > myoutput.txt
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
