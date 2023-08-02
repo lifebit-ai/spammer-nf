@@ -65,7 +65,6 @@ process processA {
 	val x into processCInput
 	val x into processDInput
 	file "*.txt"
-	file "myoutput.txt"
 
 	script:
 	"""
