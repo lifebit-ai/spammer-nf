@@ -51,7 +51,6 @@ numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
-azure_file_ch = Channel.fromPath("az://m2gengenomics.dfs.core.windows.net/nextflow/references/adapters.fa")
 
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
