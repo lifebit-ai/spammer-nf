@@ -45,6 +45,8 @@ log.info "lifeSciences.usePrivateAddress        : ${params.gls_usePrivateAddress
 log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
+log.info params
+log.info aws
 
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
