@@ -75,8 +75,7 @@ process processA {
 	"""
 	cat .command.run
 	cat .command.sh
-	aws s3 cp ${params.test_folder} a.txt
-	cat a.txt
+	ls -al
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
