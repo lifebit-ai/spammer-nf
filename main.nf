@@ -62,8 +62,8 @@ log.info("test_folder exists s3_file_10000:  + ${file('s3://lifebit-featured-dat
 
 println("test_folder exists s3_file_222222:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_222222.txt').exists()}")
 log.info("test_folder exists s3_file_222222:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_222222.txt').exists()}")
-println("test_folder exists s3_file_222222:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_222222.txt').text}")
-log.info("test_folder exists s3_file_222222:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_222222.txt').text}")
+//println("test_folder exists s3_file_222222:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_222222.txt').text}")
+//log.info("test_folder exists s3_file_222222:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_222222.txt').text}")
 
 println("test_folder exists test-ngc:  + ${file('s3://lifebit-featured-datasets/test-ngc.txt').exists()}")
 log.info("test_folder exists test-ngc:  + ${file('s3://lifebit-featured-datasets/test-ngc.txt').exists()}")
