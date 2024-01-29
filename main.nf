@@ -55,7 +55,8 @@ processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
-//log.info("test_folder exists:  + ${file(${params.test_folder}).exists()}")
+println("test_folder exists:  + ${file(${params.test_folder}).exists()}")
+log.info("test_folder exists:  + ${file(${params.test_folder}).exists()}")
 process processA {
 	echo true
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
