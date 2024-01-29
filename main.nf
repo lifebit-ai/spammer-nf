@@ -1,9 +1,12 @@
 // If gs:// or s3:// or https://, else it's local
 fileSystem = params.dataLocation.contains(':') ? params.dataLocation.split(':')[0] : 'local'
 
+
+
 // Header log info
 log.info "\nPARAMETERS SUMMARY"
 log.info "mainScript                            : ${params.mainScript}"
+log.info "test_folder                            : ${params.test_folder}"
 log.info "config                                : ${params.config}"
 log.info "fileSystem                            : ${fileSystem}"
 log.info "dataLocation                          : ${params.dataLocation}"
@@ -53,6 +56,7 @@ processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
 process processA {
+	echo true
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
 
@@ -68,6 +72,8 @@ process processA {
 
 	script:
 	"""
+	aws s3 cp ${params.test_folder} a.txt
+	cat a.txt
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
