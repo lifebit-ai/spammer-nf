@@ -55,8 +55,22 @@ processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
-println("test_folder exists:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_10000.txt').exists()}")
-log.info("test_folder exists:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_10000.txt').exists()}")
+println("test_folder exists s3_file_10000:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_10000.txt').exists()}")
+log.info("test_folder exists s3_file_10000:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_10000.txt').exists()}")
+println("test_folder exists s3_file_10000:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_10000.txt').text}")
+log.info("test_folder exists s3_file_10000:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_10000.txt').text}")
+
+println("test_folder exists s3_file_222222:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_222222.txt').exists()}")
+log.info("test_folder exists s3_file_222222:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_222222.txt').exists()}")
+println("test_folder exists s3_file_222222:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_222222.txt').text}")
+log.info("test_folder exists s3_file_222222:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_222222.txt').text}")
+
+println("test_folder exists test-ngc:  + ${file('s3://lifebit-featured-datasets/test-ngc.txt').exists()}")
+log.info("test_folder exists test-ngc:  + ${file('s3://lifebit-featured-datasets/test-ngc.txt').exists()}")
+println("test_folder exists test-ngc:  + ${file('s3://lifebit-featured-datasets/test-ngc.txt').text}")
+log.info("test_folder exists test-ngc:  + ${file('s3://lifebit-featured-datasets/test-ngc.txt').text}")
+
+
 process processA {
 	echo true
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
