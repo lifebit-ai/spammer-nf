@@ -55,8 +55,8 @@ processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
-println("test_folder exists:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_10.txt').exists()}")
-log.info("test_folder exists:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_10.txt').exists()}")
+println("test_folder exists:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_10000.txt').exists()}")
+log.info("test_folder exists:  + ${file('s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files/s3_file_10000.txt').exists()}")
 process processA {
 	echo true
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
