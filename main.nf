@@ -67,8 +67,8 @@ log.info("test_folder exists s3_file_222222:  + ${file('s3://lifebit-featured-da
 
 println("test_folder exists test-ngc:  + ${file('s3://lifebit-featured-datasets/test-ngc.txt').exists()}")
 log.info("test_folder exists test-ngc:  + ${file('s3://lifebit-featured-datasets/test-ngc.txt').exists()}")
-println("test_folder exists test-ngc:  + ${file('s3://lifebit-featured-datasets/test-ngc.txt').text}")
-log.info("test_folder exists test-ngc:  + ${file('s3://lifebit-featured-datasets/test-ngc.txt').text}")
+//println("test_folder exists test-ngc:  + ${file('s3://lifebit-featured-datasets/test-ngc.txt').text}")
+//log.info("test_folder exists test-ngc:  + ${file('s3://lifebit-featured-datasets/test-ngc.txt').text}")
 
 
 process processA {
