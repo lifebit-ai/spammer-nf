@@ -83,6 +83,8 @@ process processA {
 	"""
 }
 
+// to delete
+
 process processB {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	input:
