@@ -1,14 +1,21 @@
 {
-  "schema-A-only": {
-    "filePath": "nextflow-schema.json"
-  },
-  "schema A and B": {
-    "filePath": "nf-schemas/nextflow-schema2.json"
-  },
-  "schema_A_only2": {
-    "filePath": "nextflow-schema.json"
-  },
-  "schema+A+only3": {
-    "filePath": "nextflow-schema.json"
-  }
+  "schemas": [
+    {
+      "name": "schema-A-only",
+      "filePath": "nextflow-schema.json"
+    },
+    {
+      "name": "schema A and B",
+      "filePath": "nf-schemas/nextflow-schema2.json"
+    },
+    {
+      "name": "schema_A_only2",
+      "filePath": "nextflow-schema.json"
+    },
+    {
+      "name": "schema+A+only3",
+      "filePath": "nextflow-schema.json",
+      "status": "Coming soon"
+    }
+  ]
 }
