@@ -1,176 +1,56 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
-    "title": ". pipeline parameters",
-    "description": "A stampede of processes at your fingertips",
+    "$id": "https://raw.githubusercontent.com/nf-core/raredisease/master/nextflow_schema.json",
+    "title": "nf-core/raredisease pipeline parameters",
+    "description": "call and score variants from WGS/WES of rare disease patients",
     "type": "object",
     "definitions": {
-        "input_output_options": {
-            "title": "Input/output options",
+        "input_options": {
+            "title": "Input options",
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "properties": {}
+            "required": ["outdir"],
+            "properties": {
+                "repsProcessA": {
+                    "type": "integer",
+                    "format": "directory-path",
+                    "default": 3,
+                    "description": "Number of repetitions of process A.",
+                    "fa_icon": "fas fa-align-center"
+                },
+                "processATimeRange": {
+                    "type": "integer",
+                    "description": "Range in ms of time for process A duration.",
+                    "default": "10-12",
+                    "fa_icon": "fas fa-envelope",
+                    "help_text": "Bla bla bla."
+                }
+            }
         },
-        "reference_genome_options": {
-            "title": "Reference genome options",
+        "data_options": {
+            "title": "Data options",
             "type": "object",
             "fa_icon": "fas fa-dna",
-            "description": "Options for the reference genome indices used to align reads.",
-            "properties": {}
-        },
-        "generic_options": {
-            "title": "Generic options",
-            "type": "object",
-            "fa_icon": "fas fa-file-import",
-            "description": "Less common options for the pipeline, typically set in a config file.",
-            "help_text": "These options are common to all nf-core pipelines and allow you to customise some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
-            "properties": {}
-        },
-        "max_job_request_options": {
-            "title": "Max job request options",
-            "type": "object",
-            "fa_icon": "fab fa-acquisitions-incorporated",
-            "description": "Set the top limit for requested resources for any single job.",
-            "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
-            "properties": {}
-        },
-        "institutional_config_options": {
-            "title": "Institutional config options",
-            "type": "object",
-            "fa_icon": "fas fa-university",
-            "description": "Parameters used to describe centralised config profiles. These should not be edited.",
-            "help_text": "The centralised nf-core configuration profiles use a handful of pipeline parameters to describe themselves. This information is then printed to the Nextflow log when you run a pipeline. You should not need to change these values when you run a pipeline.",
-            "properties": {}
+            "description": "Reference genome related files and options required for the workflow.",
+            "properties": {
+                "dataLocation": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "default": "s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files",
+                    "fa_icon": "fas fa-folder-open",
+                    "description": "Path to location of input files."
+                }
+            },
+            "required": ["dataLocation"]
         }
     },
     "allOf": [
         {
-            "$ref": "#/definitions/input_output_options"
+            "$ref": "#/definitions/input_options"
         },
         {
-            "$ref": "#/definitions/reference_genome_options"
-        },
-        {
-            "$ref": "#/definitions/generic_options"
-        },
-        {
-            "$ref": "#/definitions/max_job_request_options"
-        },
-        {
-            "$ref": "#/definitions/institutional_config_options"
+            "$ref": "#/definitions/data_options"
         }
-    ],
-    "properties": {
-        "mainScript": {
-            "type": "string",
-            "default": "main.nf"
-        },
-        "defaultBranch": {
-            "type": "string",
-            "default": "stage-s3-files"
-        },
-        "config": {
-            "type": "string",
-            "default": "conf/standard.config"
-        },
-        "dataLocation": {
-            "type": "string",
-            "default": "s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files"
-        },
-        "fileSuffix": {
-            "type": "string"
-        },
-        "repsProcessA": {
-            "type": "integer",
-            "default": 2
-        },
-        "processAWriteToDiskMb": {
-            "type": "integer",
-            "default": 10
-        },
-        "processATimeRange": {
-            "type": "string",
-            "default": "1-2"
-        },
-        "filesProcessA": {
-            "type": "integer",
-            "default": 1
-        },
-        "processATimeBetweenFileCreationInSecs": {
-            "type": "integer",
-            "default": 0
-        },
-        "processBTimeRange": {
-            "type": "string",
-            "default": "2-3"
-        },
-        "processBWriteToDiskMb": {
-            "type": "integer",
-            "default": 10
-        },
-        "processCTimeRange": {
-            "type": "string",
-            "default": "2-3"
-        },
-        "processDTimeRange": {
-            "type": "string",
-            "default": "2-3"
-        },
-        "output": {
-            "type": "string",
-            "default": "results"
-        },
-        "echo": {
-            "type": "string"
-        },
-        "cpus": {
-            "type": "integer",
-            "default": 1
-        },
-        "processA_cpus": {
-            "type": "integer",
-            "default": 1
-        },
-        "errorStrategy": {
-            "type": "string",
-            "default": "ignore"
-        },
-        "container": {
-            "type": "string",
-            "default": "quay.io/lifebitai/ubuntu:18.10"
-        },
-        "maxForks": {
-            "type": "integer",
-            "default": 200
-        },
-        "queueSize": {
-            "type": "integer",
-            "default": 200
-        },
-        "executor": {
-            "type": "string",
-            "default": "ignite"
-        },
-        "gls_bootDiskSize": {
-            "type": "string",
-            "default": "50.GB"
-        },
-        "gls_preemptible": {
-            "type": "string",
-            "default": "true"
-        },
-        "zone": {
-            "type": "string",
-            "default": "us-east1-b"
-        },
-        "network": {
-            "type": "string",
-            "default": "default"
-        },
-        "subnetwork": {
-            "type": "string",
-            "default": "default"
-        }
-    }
+    ]
 }
