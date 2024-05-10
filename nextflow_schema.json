@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-07/schema",
     "$id": "https://raw.githubusercontent.com/nf-core/raredisease/master/nextflow_schema.json",
     "title": "nf-core/raredisease pipeline parameters",
-    "description": "call and score variants from WGS/WES of rare disease patients",
+    "description": "Schema for process A settings only",
     "type": "object",
     "definitions": {
         "input_options": {
