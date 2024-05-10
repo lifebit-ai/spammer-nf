@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://raw.githubusercontent.com/nf-core/raredisease/master/nextflow_schema.json",
+  "title": "nf-core/raredisease pipeline parameters",
+  "description": "Schema for process A and B settings",
+  "type": "object",
+  "definitions": {
+    "input_options": {
+      "title": "Input options",
+      "type": "object",
+      "fa_icon": "fas fa-terminal",
+      "description": "Define where the pipeline should find input data and save output data.",
+      "required": ["outdir"],
+      "properties": {
+        "repsProcessA": {
+          "type": "integer",
+          "format": "directory-path",
+          "default": 3,
+          "description": "Number of repetitions of process A.",
+          "fa_icon": "fas fa-align-center"
+        },
+        "processATimeRange": {
+          "type": "integer",
+          "description": "Range in ms of time for process A duration.",
+          "default": "10-12",
+          "fa_icon": "fas fa-envelope",
+          "help_text": "Bla bla bla A."
+        },
+        "processBTimeRange": {
+          "type": "integer",
+          "description": "Range in ms of time for process B duration.",
+          "default": "20-22",
+          "fa_icon": "fas fa-envelope",
+          "help_text": "Bla bla bla B."
+        }
+      }
+    },
+    "data_options": {
+      "title": "Data options",
+      "type": "object",
+      "fa_icon": "fas fa-dna",
+      "description": "Reference genome related files and options required for the workflow.",
+      "properties": {
+        "dataLocation": {
+          "type": "string",
+          "format": "directory-path",
+          "default": "s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files",
+          "fa_icon": "fas fa-folder-open",
+          "description": "Path to location of input files."
+        }
+      },
+      "required": ["dataLocation"]
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/input_options"
+    },
+    {
+      "$ref": "#/definitions/data_options"
+    }
+  ]
+}
