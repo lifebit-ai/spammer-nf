@@ -49,21 +49,20 @@ log.info ""
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
-processAInput = Channel.from([1] * numberRepetitionsForProcessA)
-processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
+
 
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
 
 	input:
-	val x from processAInput
-	file(a_file) from processAInputFiles
+	val x
+	path a_file
 
 	output:
-	val x into processAOutput
-	val x into processCInput
-	val x into processDInput
+	val x, emit: processAOutput
+	val x, emit: processCInput
+	val x, emit: processDInput
 	file "*.txt"
 
 	script:
@@ -86,7 +85,7 @@ process processA {
 process processB {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	input:
-	val x from processAOutput
+	val x
 
 
 	"""
@@ -102,7 +101,7 @@ process processB {
 process processC {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	input: 
-	val x from processCInput
+	val x
 
 	"""
 	${params.pre_script}
@@ -117,7 +116,7 @@ process processC {
 process processD {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	input: 
-	val x from processDInput
+	val x
 
 	"""
 	${params.pre_script}
@@ -126,4 +125,15 @@ process processD {
     sleep \$timeToWait
 	${params.post_script}
 	"""
+}
+
+
+workflow {
+	processAInput = Channel.from([1] * numberRepetitionsForProcessA)
+	processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
+
+	processA(processAInput, processAInputFiles)
+	processB(processA.out.processAOutput)
+	processC(processA.out.processCInput)
+	processD(processA.out.processDInput)
 }
