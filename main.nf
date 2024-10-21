@@ -68,6 +68,7 @@ process processA {
 
 	script:
 	"""
+exit -1
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
