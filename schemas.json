@@ -14,8 +14,7 @@
     },
     {
       "name": "schema+A+only3",
-      "filePath": "nextflow-schema.json",
-      "status": "Coming soon"
+      "filePath": "nextflow-schema.json"
     }
   ]
 }
