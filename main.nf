@@ -53,7 +53,7 @@ processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
 
-log.info(file('https://anaconda.org/conda-forge/jq/1.7.1/download/linux-ppc64le/jq-1.7.1-ha17a0cc_0.conda').text)
+log.info(file('https://example-files.online-convert.com/document/txt/example.txt').text)
 
 process processA {
 echo true
@@ -73,7 +73,7 @@ echo true
 	script:
 	"""
 curl -O https://github.com/pyrra-dev/pyrra/releases/download/v0.8.4/pyrra-0.8.4.tar.gz
-curl -O https://anaconda.org/conda-forge/jq/1.7.1/download/linux-ppc64le/jq-1.7.1-ha17a0cc_0.conda
+curl -O https://example-files.online-convert.com/document/txt/example.txt
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
