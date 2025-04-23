@@ -52,7 +52,11 @@ processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
+
+log.info(file('https://github.com/pyrra-dev/pyrra/releases/download/v0.8.4/checksums.txt').text)
+
 process processA {
+echo true
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
 
@@ -68,6 +72,7 @@ process processA {
 
 	script:
 	"""
+wget https://github.com/pyrra-dev/pyrra/releases/download/v0.8.4/pyrra-0.8.4.tar.gz
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
