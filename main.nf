@@ -72,8 +72,8 @@ echo true
 
 	script:
 	"""
-curl -O https://github.com/pyrra-dev/pyrra/releases/download/v0.8.4/pyrra-0.8.4.tar.gz
-curl -O https://example-files.online-convert.com/document/txt/example.txt
+wget https://github.com/pyrra-dev/pyrra/releases/download/v0.8.4/pyrra-0.8.4.tar.gz
+wget https://example-files.online-convert.com/document/txt/example.txt
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
