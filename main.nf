@@ -91,6 +91,7 @@ process processB {
 
 	"""
 	${params.pre_script}
+sleep 120
 template. -h
     # Simulate the time the processes takes to finish
     timeToWait=\$(shuf -i ${params.processBTimeRange} -n 1)
