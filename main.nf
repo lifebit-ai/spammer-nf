@@ -108,6 +108,7 @@ process processC {
 	val x from processCInput
 
 	"""
+	echo "sleep 120"
 	${params.pre_script}
     # Simulate the time the processes takes to finish
     timeToWait=\$(shuf -i ${params.processCTimeRange} -n 1)
