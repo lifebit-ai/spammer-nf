@@ -91,8 +91,6 @@ process processB {
 
 
 	"""
-	template -h
-exit -1
 	echo "sleep 120"
 	${params.pre_script}
     # Simulate the time the processes takes to finish
