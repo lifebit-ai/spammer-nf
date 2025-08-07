@@ -68,7 +68,7 @@ process processA {
 
 	script:
 	"""
-	echo "sleep 300"
+	sleep 300
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
