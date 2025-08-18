@@ -68,7 +68,7 @@ process processA {
 
 	script:
 	"""
-sleep 600
+#sleep 600
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
@@ -121,6 +121,7 @@ process processD {
 	val x from processDInput
 
 	"""
+exit -1
 	${params.pre_script}
     # Simulate the time the processes takes to finish
     timeToWait=\$(shuf -i ${params.processDTimeRange} -n 1)
