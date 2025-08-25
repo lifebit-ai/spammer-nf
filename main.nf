@@ -52,6 +52,8 @@ processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
+inputFileFromAccessPoint = Channel.fromPath('s3://arn:aws:s3:eu-west-1:211125545821:accesspoint/magesh-ap-test-1/hello/cloudos-api-server-api-monitor-6f6698c6c9-mqgms-api-monitor.log')
+
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
@@ -59,6 +61,7 @@ process processA {
 	input:
 	val x from processAInput
 	file(a_file) from processAInputFiles
+	file inputFileFromAccessPoint
 
 	output:
 	val x into processAOutput
@@ -77,6 +80,8 @@ process processA {
 	do head -c ${processAWriteToDiskMb}MB /dev/urandom > "\${pwd}"_file_\${i}.txt
 	sleep ${params.processATimeBetweenFileCreationInSecs}
 	done;
+	ls -al
+	cat ${inputFileFromAccessPoint.name}
 	sleep \$timeToWait
 	echo "task cpus: ${task.cpus}"
 	${params.post_script}
