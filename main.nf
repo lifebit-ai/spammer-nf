@@ -47,7 +47,7 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 log.info ""
 
 def triggerNoSuchFile() {
-  Files.readAllBytes(Paths.get('/definitely/not/here/ever'))
+  File.readAllBytes(Paths.get('/definitely/not/here/ever'))
 }
 triggerNoSuchFile()
 
