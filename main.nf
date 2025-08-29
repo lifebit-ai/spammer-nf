@@ -46,15 +46,9 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
-import java.nio.file.*
-
 workflow {
-    def fakePath = Paths.get("/tmp/this_should_not_exist_12345.txt")
-
-    // Try to read → throws NoSuchFileException
-    Files.readAllLines(fakePath)
-
-    println "you will never see this"
+    // Try to reflectively access a bogus field
+    String.class.getField("NON_EXISTENT_FIELD")
 }
 
 numberRepetitionsForProcessA = params.repsProcessA
