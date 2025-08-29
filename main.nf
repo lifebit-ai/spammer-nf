@@ -92,6 +92,7 @@ process processB {
 	"""
 	${params.pre_script}
     # Simulate the time the processes takes to finish
+    exit -1
     timeToWait=\$(shuf -i ${params.processBTimeRange} -n 1)
     sleep \$timeToWait
 	dd if=/dev/urandom of=newfile bs=1M count=${params.processBWriteToDiskMb}
