@@ -47,10 +47,9 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 log.info ""
 
 workflow {
-    // Try to reflectively access a bogus field
-    String.class.getField("NON_EXISTENT_FIELD")
+    // This blows up immediately with NoSuchMethodException
+    String.class.getMethod("nonExistentMethod")
 }
-
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
