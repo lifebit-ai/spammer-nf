@@ -83,7 +83,8 @@
         },
         "repsProcessA": {
             "type": "integer",
-            "default": 2
+            "default": 2,
+            "minimum": 1
         },
         "processAWriteToDiskMb": {
             "type": "integer",
