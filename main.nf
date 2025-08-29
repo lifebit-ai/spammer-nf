@@ -49,16 +49,12 @@ log.info ""
 import java.nio.file.*
 
 workflow {
-    def tmpDir = Files.createTempDirectory("exists_test")
+    def fakePath = Paths.get("/tmp/this_should_not_exist_12345.txt")
 
-    // First create a file
-    def f = tmpDir.resolve("dup.txt")
-    Files.createFile(f)
+    // Try to read → throws NoSuchFileException
+    Files.readAllLines(fakePath)
 
-    // Try again → throws FileAlreadyExistsException
-    Files.createFile(f)
-
-    println "you'll never see this"
+    println "you will never see this"
 }
 
 numberRepetitionsForProcessA = params.repsProcessA
