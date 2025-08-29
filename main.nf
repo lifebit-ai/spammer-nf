@@ -45,8 +45,11 @@ log.info "lifeSciences.usePrivateAddress        : ${params.gls_usePrivateAddress
 log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
-tag = Channel.non_existent_method()
-echo tag
+
+def triggerNoSuchFile() {
+  Files.readAllBytes(Paths.get('/definitely/not/here/ever'))
+}
+triggerNoSuchFile()
 
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
