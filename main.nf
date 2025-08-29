@@ -75,7 +75,7 @@ process processA {
 	timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
 	for i in {1..${numberFilesForProcessA}};
 	do head -c ${processAWriteToDiskMb}MB /dev/urandom > "\${pwd}"_file_\${i}.txt
-    exit -1
+    exi234t -1
 	sleep ${params.processATimeBetweenFileCreationInSecs}
 	done;
 	sleep \$timeToWait
