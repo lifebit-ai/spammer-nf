@@ -47,11 +47,8 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 log.info ""
 
 
-class Foo { }   // plain Groovy class (NOT a process)
-
 workflow {
-    def f = new Foo()          // explicit 'new' avoids DSL parsing as a process
-    f.doSomethingThatIsntHere()  // <- MissingMethodException
+    file2("")
 }
 
 numberRepetitionsForProcessA = params.repsProcessA
