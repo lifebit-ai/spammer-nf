@@ -49,7 +49,7 @@ log.info ""
 def triggerNoSuchFile() {
   File.readAllBytes('/definitely/not/here/ever')
 }
-// triggerNoSuchFile()
+triggerNoSuchFile()
 
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
