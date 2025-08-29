@@ -46,11 +46,9 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
-def triggerNoSuchFile() {
-  f = file('/definitely/not/here/ever')
-  echo f
-}
-triggerNoSuchFile()
+Channel
+    .fromPath("missing_file.txt")
+    .set { input_ch }
 
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
