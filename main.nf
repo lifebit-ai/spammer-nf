@@ -55,6 +55,9 @@ processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuff
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
+    errorStrategy 'terminate'
+    maxRetries 0
+    validExitStatus 0
 
 	input:
 	val x from processAInput
@@ -75,7 +78,7 @@ process processA {
 	timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
 	for i in {1..${numberFilesForProcessA}};
 	do head -c ${processAWriteToDiskMb}MB /dev/urandom > "\${pwd}"_file_\${i}.txt
-    exi234t -1
+    exit -1
 	sleep ${params.processATimeBetweenFileCreationInSecs}
 	done;
 	sleep \$timeToWait
