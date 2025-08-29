@@ -46,10 +46,14 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
+
+class Foo { }   // plain Groovy class (NOT a process)
+
 workflow {
-    // Try to call a method that does not exist on String
-    "hello".nonExistentMethod()
+    def f = new Foo()          // explicit 'new' avoids DSL parsing as a process
+    f.doSomethingThatIsntHere()  // <- MissingMethodException
 }
+
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
