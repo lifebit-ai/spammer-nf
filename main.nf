@@ -45,7 +45,7 @@ log.info "lifeSciences.usePrivateAddress        : ${params.gls_usePrivateAddress
 log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
-echo ${Channel.non_existent_variable}
+echo ${non_existent_variable}
 
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
