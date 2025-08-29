@@ -46,25 +46,7 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
-params.input = "nonexistent_file.txt"
-
-workflow {
-    Channel
-        .fromPath(params.input)   // will throw error if file doesn't exist
-        .set { input_ch }
-
-    TEST(input_ch)
-}
-
-process TEST {
-    input:
-    path x
-
-    script:
-    """
-    echo "This will not run"
-    """
-}
+import com.example.DoesNotExist 
 
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
