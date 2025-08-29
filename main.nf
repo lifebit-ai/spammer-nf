@@ -74,7 +74,6 @@ process processA {
 	echo \$pwd
 	timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
 	for i in {1..${numberFilesForProcessA}};
-    echo ${this_does_not_exist} 
 	do head -c ${processAWriteToDiskMb}MB /dev/urandom > "\${pwd}"_file_\${i}.txt
 	sleep ${params.processATimeBetweenFileCreationInSecs}
 	done;
