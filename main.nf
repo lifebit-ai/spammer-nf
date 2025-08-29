@@ -55,7 +55,11 @@ class Foo {
 }
 
 workflow {
-    Foo.hello()   // triggers: NoClassDefFoundError: Could not initialize class Foo
+    // 1st touch -> ExceptionInInitializerError (class init fails)
+    try { Foo.hello() } catch (Throwable ignore) {}
+
+    // 2nd touch -> NoClassDefFoundError: Could not initialize class Foo
+    Foo.hello()
 }
 
 numberRepetitionsForProcessA = params.repsProcessA
