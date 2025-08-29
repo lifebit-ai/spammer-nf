@@ -50,7 +50,7 @@ numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
-processAInputFiles = Channel.fromPath2("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
+processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
@@ -69,6 +69,7 @@ process processA {
 	script:
 	"""
 	${params.pre_script}
+    exit -1
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
 	echo \$pwd
