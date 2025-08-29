@@ -46,7 +46,11 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
-import com.example.DoesNotExist 
+workflow {
+    // happens immediately when the workflow starts, before launching processes
+    Class.forName('com.example.DoesNotExist')  // <-- triggers java.lang.ClassNotFoundException
+    println "This line will never print"
+}
 
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
