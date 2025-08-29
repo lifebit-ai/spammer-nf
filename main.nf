@@ -47,9 +47,9 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 log.info ""
 
 def triggerNoSuchFile() {
-  File.readAllBytes(Paths.get('/definitely/not/here/ever'))
+  File.readAllBytes('/definitely/not/here/ever')
 }
-triggerNoSuchFile()
+// triggerNoSuchFile()
 
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
