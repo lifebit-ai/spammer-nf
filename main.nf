@@ -45,6 +45,7 @@ log.info "lifeSciences.usePrivateAddress        : ${params.gls_usePrivateAddress
 log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
+echo ${Channel.non_existent_variable}
 
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
@@ -69,7 +70,6 @@ process processA {
 	script:
 	"""
 	${params.pre_script}
-    echo ${Channel.non_existent_variable}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
 	echo \$pwd
