@@ -69,6 +69,7 @@ process processA {
 	"""
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
+	exit -1
 	pwd=`basename \${PWD} | cut -c1-6`
 	echo \$pwd
 	timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
