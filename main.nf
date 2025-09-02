@@ -46,8 +46,10 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
-import com.example.DoesNotExist
-
+workflow {
+    // This blows up immediately with NoSuchMethodException
+    String.class.getMethod("nonExistentMethod")
+}
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
