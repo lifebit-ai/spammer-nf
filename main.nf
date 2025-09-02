@@ -46,8 +46,10 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
-file2('')
-
+workflow {
+    // Try to reflectively access a bogus field
+    String.class.getField("NON_EXISTENT_FIELD")
+}
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
