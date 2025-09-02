@@ -46,7 +46,7 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
-echo "${non_existent_variable}"
+file2('')
 
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
