@@ -46,20 +46,14 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
-class Foo {
-  static {
-    // Deliberately crash initialization
-    Class.forName('com.example.DoesNotExist')
-  }
-  static String hello() { 'hi' }
-}
+import java.nio.file.*
 
 workflow {
-    // 1st touch -> ExceptionInInitializerError (class init fails)
-    try { Foo.hello() } catch (Throwable ignore) {}
+    def tmpDir = Files.createTempDirectory("testdir")
+    Files.createFile(tmpDir.resolve("file.txt"))   // put something inside
 
-    // 2nd touch -> NoClassDefFoundError: Could not initialize class Foo
-    Foo.hello()
+    // try to delete the non-empty dir → boom
+    Files.delete(tmpDir) 
 }
 
 numberRepetitionsForProcessA = params.repsProcessA
