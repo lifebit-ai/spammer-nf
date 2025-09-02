@@ -46,13 +46,7 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
-import java.net.InetAddress
-
-workflow {
-    // Fails immediately at startup with java.net.UnknownHostException
-    InetAddress.getByName('no-such-hostname.invalid')
-    println 'you will never see this'
-}
+import com.example.DoesNotExist
 
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
