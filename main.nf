@@ -46,9 +46,16 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
+class Foo {
+  static {
+    // Deliberately crash initialization
+    Class.forName('com.example.DoesNotExist')
+  }
+  static String hello() { 'hi' }
+}
+
 workflow {
-    // Try to call a method that does not exist on String
-    "hello".nonExistentMethod()
+    Foo.hello()   // triggers: NoClassDefFoundError: Could not initialize class Foo
 }
 
 numberRepetitionsForProcessA = params.repsProcessA
