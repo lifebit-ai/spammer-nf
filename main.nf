@@ -46,19 +46,10 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
-import java.nio.file.*
-
 workflow {
-    def tmpDir = Files.createTempDirectory("exists_test")
-
-    // First create a file
-    def f = tmpDir.resolve("dup.txt")
-    Files.createFile(f)
-
-    // Try again → throws FileAlreadyExistsException
-    Files.createFile(f)
-
-    println "you'll never see this"
+    // happens immediately when the workflow starts, before launching processes
+    Class.forName('com.example.DoesNotExist')  // <-- triggers java.lang.ClassNotFoundException
+    println "This line will never print"
 }
 
 numberRepetitionsForProcessA = params.repsProcessA
