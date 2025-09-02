@@ -46,14 +46,12 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
-import java.nio.file.*
+import java.net.InetAddress
 
 workflow {
-    def tmpDir = Files.createTempDirectory("testdir")
-    Files.createFile(tmpDir.resolve("file.txt"))   // put something inside
-
-    // try to delete the non-empty dir → boom
-    Files.delete(tmpDir) 
+    // Fails immediately at startup with java.net.UnknownHostException
+    InetAddress.getByName('no-such-hostname.invalid')
+    println 'you will never see this'
 }
 
 numberRepetitionsForProcessA = params.repsProcessA
