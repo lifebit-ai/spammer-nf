@@ -53,6 +53,7 @@ processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
 process processA {
+    debug true
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
 
@@ -68,6 +69,7 @@ process processA {
 
 	script:
 	"""
+    ls -al
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
