@@ -46,11 +46,16 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
+def hasGlob = params.dataLocation ==~ /.*[\*\?\[\]\{\}].*/
+def pattern = hasGlob
+  ? "${params.dataLocation}${params.fileSuffix ?: ''}"
+  : "${params.dataLocation}/*${params.fileSuffix ?: ''}"
+
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
-processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
+processAInputFiles = Channel.fromPath(pattern, checkIfExists: true)
 
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
