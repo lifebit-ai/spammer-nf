@@ -55,6 +55,7 @@ processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuff
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
+    containerOptions = '--user 0:0'
 
 	input:
 	val x from processAInput
