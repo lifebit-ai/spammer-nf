@@ -1,12 +1,14 @@
-// If gs:// or s3:// or https://, else it's local
-fileSystem = params.dataLocation.contains(':') ? params.dataLocation.split(':')[0] : 'local'
+nextflow.enable.dsl = 2
 
-// ---------- Added: generator parameters ----------
-params.run_generator = params.run_generator ?: true
-params.gen_count     = params.gen_count     ?: 3000    // number of files to create
-params.gen_outdir    = params.gen_outdir    ?: 'results'  // output directory for generated files
+// ---------- detect filesystem ----------
+fileSystem = params.dataLocation?.contains(':') ? params.dataLocation.split(':')[0] : 'local'
 
-// Header log info
+// ---------- generator params (new) ----------
+params.run_generator = params.run_generator ?: true          // set to false to skip generator
+params.gen_count     = (params.gen_count ?: 3000) as int     // how many files to generate
+params.gen_outdir    = params.gen_outdir ?: 'results'        // output directory for generated files
+
+// ---------- header log ----------
 log.info "\nPARAMETERS SUMMARY"
 log.info "mainScript                            : ${params.mainScript}"
 log.info "config                                : ${params.config}"
@@ -33,18 +35,13 @@ log.info "queueSize                             : ${params.queueSize}"
 log.info "pre_script                            : ${params.pre_script}"
 log.info "post_script                           : ${params.post_script}"
 log.info "executor                              : ${params.executor}"
-// ---------- Added: log generator params ----------
-log.info "run_generator                         : ${params.run_generator}"
-log.info "gen_count                             : ${params.gen_count}"
-log.info "gen_outdir                            : ${params.gen_outdir}"
-
-if(params.executor == 'awsbatch') {
+if (params.executor == 'awsbatch') {
   log.info "aws_batch_cliPath                     : ${params.aws_batch_cliPath}"
   log.info "aws_batch_fetchInstanceType           : ${params.aws_batch_fetchInstanceType}"
   log.info "aws_batch_process_queue               : ${params.aws_batch_process_queue}"
   log.info "aws_batch_docker_run_options          : ${params.aws_batch_docker_run_options}"
 }
-if(params.executor == 'google-lifesciences') {
+if (params.executor == 'google-lifesciences') {
   log.info "gls_bootDiskSize                      : ${params.gls_bootDiskSize}"
   log.info "gls_preemptible                       : ${params.gls_preemptible}"
   log.info "gls_usePrivateAddress                 : ${params.gls_usePrivateAddress}"
@@ -54,55 +51,46 @@ if(params.executor == 'google-lifesciences') {
   log.info "lifeSciences.usePrivateAddress        : ${params.gls_usePrivateAddress}"
   log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
+// generator logs (new)
+log.info "run_generator                         : ${params.run_generator}"
+log.info "gen_count                             : ${params.gen_count}"
+log.info "gen_outdir                            : ${params.gen_outdir}"
 log.info ""
 
-// ---------- Existing A–D setup ----------
-numberRepetitionsForProcessA = params.repsProcessA
-numberFilesForProcessA = params.filesProcessA
-processAWriteToDiskMb = params.processAWriteToDiskMb
-processAInput = Channel.from([1] * numberRepetitionsForProcessA)
-processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
+// ---------- existing A setup ----------
+numberRepetitionsForProcessA = (params.repsProcessA ?: 1) as int
+numberFilesForProcessA       = (params.filesProcessA ?: 1) as int
+processAWriteToDiskMb        = params.processAWriteToDiskMb ?: 1
 
-// ---------- Added: channels to drive the generator ----------
-genCountCh  = Channel.value(params.gen_count)
-genOutdirCh = Channel.value(params.gen_outdir)
-runGenCh    = Channel.value(params.run_generator)
+processAInput      = Channel.from( [1] * numberRepetitionsForProcessA )
+processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
+                             .take( numberRepetitionsForProcessA )
 
-// ---------- Added: standalone generator process ----------
+// ---------- generator (new) ----------
 process GENERATE_RESULTS {
-  tag "generate ${count} files -> ${outdir}"
+  tag "generate ${params.gen_count} files -> ${params.gen_outdir}"
   cpus 1
-  publishDir "${outdir}", mode: 'copy', overwrite: true
-
-  input:
-  val count
-  val outdir
-
-  output:
-  path outdir, emit: generated_dir
+  // publish so CloudOS collects the generated folder as an output
+  publishDir "${params.gen_outdir}", mode: 'copy', overwrite: true
 
   when:
-  run
+  params.run_generator
+
+  output:
+  path "${params.gen_outdir}", emit: generated_dir
 
   script:
   """
-  mkdir -p "${outdir}"
-  # Portable loop using seq; produces tiny text files result_00001.txt ... result_<count>.txt
-  for i in \$(seq 1 ${count}); do
-    printf "This is file %d\\n" "\$i" > "${outdir}/result_\$(printf '%05d' "\$i").txt"
+  mkdir -p "${params.gen_outdir}"
+  # Create result_00001.txt ... result_<gen_count>.txt
+  for i in \$(seq 1 ${params.gen_count}); do
+    printf "This is file %d\\n" "\$i" > "${params.gen_outdir}/result_\$(printf '%05d' "\$i").txt"
   done
-  echo "Created \$(ls -1 "${outdir}" | wc -l) files in ${outdir}"
+  echo "Created \$(ls -1 "${params.gen_outdir}" | wc -l) files in ${params.gen_outdir}"
   """
 }
 
-// ---------- Tie params to the generator inputs ----------
-GENERATE_RESULTS(
-  count: genCountCh,
-  outdir: genOutdirCh,
-  run: runGenCh
-)
-
-// ---------- Existing processes ----------
+// ---------- existing processes ----------
 process processA {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
   tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
@@ -120,15 +108,15 @@ process processA {
   script:
   """
   ${params.pre_script}
-  # Simulate the time the processes takes to finish
-  pwd=\`basename \${PWD} | cut -c1-6\`
-  echo \$pwd
+  # Simulate the time the process takes to finish
+  pwd=\$(basename "\$PWD" | cut -c1-6)
+  echo "\$pwd"
   timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
-  for i in {1..${numberFilesForProcessA}};
-  do head -c ${processAWriteToDiskMb}MB /dev/urandom > "\${pwd}"_file_\${i}.txt
-     sleep ${params.processATimeBetweenFileCreationInSecs}
-  done;
-  sleep \$timeToWait
+  for i in \$(seq 1 ${numberFilesForProcessA}); do
+    head -c ${processAWriteToDiskMb}MB /dev/urandom > "\${pwd}_file_\${i}.txt"
+    sleep ${params.processATimeBetweenFileCreationInSecs}
+  done
+  sleep "\$timeToWait"
   echo "task cpus: ${task.cpus}"
   ${params.post_script}
   """
@@ -136,14 +124,16 @@ process processA {
 
 process processB {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
+
   input:
   val x from processAOutput
 
+  script:
   """
   ${params.pre_script}
-  # Simulate the time the processes takes to finish
+  # Simulate the time the process takes to finish
   timeToWait=\$(shuf -i ${params.processBTimeRange} -n 1)
-  sleep \$timeToWait
+  sleep "\$timeToWait"
   dd if=/dev/urandom of=newfile bs=1M count=${params.processBWriteToDiskMb}
   ${params.post_script}
   """
@@ -151,28 +141,32 @@ process processB {
 
 process processC {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
+
   input:
   val x from processCInput
 
+  script:
   """
   ${params.pre_script}
-  # Simulate the time the processes takes to finish
+  # Simulate the time the process takes to finish
   timeToWait=\$(shuf -i ${params.processCTimeRange} -n 1)
-  sleep \$timeToWait
+  sleep "\$timeToWait"
   ${params.post_script}
   """
 }
 
 process processD {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
+
   input:
   val x from processDInput
 
+  script:
   """
   ${params.pre_script}
-  # Simulate the time the processes takes to finish
+  # Simulate the time the process takes to finish
   timeToWait=\$(shuf -i ${params.processDTimeRange} -n 1)
-  sleep \$timeToWait
+  sleep "\$timeToWait"
   ${params.post_script}
   """
 }
