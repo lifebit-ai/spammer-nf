@@ -67,8 +67,7 @@ processAWriteToDiskMb        = (params.processAWriteToDiskMb ?: 1) as int
 
 /**
  * Generates N tiny files and PUBLISHES them.
- * We write into a local 'generated/' folder and declare those files as outputs;
- * publishDir then copies them to params.gen_outdir so CloudOS shows them.
+ * Writes into local 'generated/' and declares outputs; publishDir copies to gen_outdir.
  */
 process GENERATE_RESULTS {
   tag "generate ${params.gen_count} -> ${params.gen_outdir}"
@@ -79,9 +78,9 @@ process GENERATE_RESULTS {
   val count
   val outdir
 
-  // ✅ explicit outputs so Nextflow publishes everything
+  // Explicit outputs so Nextflow publishes everything
   output:
-  file "generated/*" emit: gen_files
+  path "generated/*" emit: gen_files
 
   script:
   """
@@ -100,21 +99,20 @@ process processA {
 
   input:
   val x
-  file a_file
+  path a_file
 
   // three vals (fan-out) + files
   output:
   val x
   val x
   val x
-  file "*.txt"
+  path "*.txt"
 
   script:
   """
   ${params.pre_script}
   pwd=\$(basename "\$PWD" | cut -c1-6)
   echo "\$pwd"
-  # timeToWait via shuf if available; else simple fallback (3-10 style range expected)
   if command -v shuf >/dev/null 2>&1; then
     timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
   else
@@ -140,7 +138,7 @@ process processB {
   val x
 
   output:
-  file "newfile"
+  path "newfile"
 
   script:
   """
@@ -220,13 +218,12 @@ workflow {
   def chA_files = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
                          .take( numberRepetitionsForProcessA )
 
-  // Generator (standalone), now with explicit outputs so everything is published
+  // Generator (standalone) with explicit outputs
   if (params.run_generator) {
     def gen_count_ch  = Channel.value( params.gen_count )
     def gen_outdir_ch = Channel.value( params.gen_outdir )
     def (gen_files)   = GENERATE_RESULTS( gen_count_ch, gen_outdir_ch )
-    // optional: log a few to confirm
-    // gen_files.take(3).view { f -> "GEN: ${f}" }
+    // gen_files.take(3).view { f -> "GEN: ${f}" } // optional debug
   }
 
   // Invoke A and destructure its positional outputs (val, val, val, files)
