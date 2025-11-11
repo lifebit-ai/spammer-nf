@@ -1,14 +1,14 @@
 nextflow.enable.dsl=2
 
-// ---------- detect filesystem ----------
+// -------- detect filesystem --------
 fileSystem = params.dataLocation?.contains(':') ? params.dataLocation.split(':')[0] : 'local'
 
-// ---------- generator params (new) ----------
+// -------- generator params (new) --------
 params.run_generator = (params.run_generator != null ? params.run_generator : true)
 params.gen_count     = (params.gen_count ?: 3000) as int
 params.gen_outdir    = params.gen_outdir ?: 'results'
 
-// ---------- header log ----------
+// -------- header log --------
 log.info "\nPARAMETERS SUMMARY"
 log.info "mainScript                            : ${params.mainScript}"
 log.info "config                                : ${params.config}"
@@ -56,22 +56,17 @@ log.info "gen_count                             : ${params.gen_count}"
 log.info "gen_outdir                            : ${params.gen_outdir}"
 log.info ""
 
-// ---------- defaults to avoid nulls ----------
+// -------- defaults to avoid nulls --------
 numberRepetitionsForProcessA = (params.repsProcessA ?: 1) as int
 numberFilesForProcessA       = (params.filesProcessA ?: 1) as int
 processAWriteToDiskMb        = (params.processAWriteToDiskMb ?: 1) as int
-
-// ---------- channels for A ----------
-processAInput      = Channel.from( [1] * numberRepetitionsForProcessA )
-processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
-                            .take( numberRepetitionsForProcessA )
 
 // =====================================================
 //                      PROCESSES
 // =====================================================
 
 process GENERATE_RESULTS {
-  tag "generate ${params.gen_count} files -> ${params.gen_outdir}"
+  tag "generate ${params.gen_count} -> ${params.gen_outdir}"
   cpus 1
   publishDir "${params.gen_outdir}", mode: 'copy', overwrite: true
 
@@ -79,7 +74,7 @@ process GENERATE_RESULTS {
   params.run_generator
 
   output:
-  path "${params.gen_outdir}"
+  path "${params.gen_outdir}" emit: generated_dir
 
   script:
   """
@@ -94,17 +89,17 @@ process GENERATE_RESULTS {
 
 process processA {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
-  tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
+  tag "cpus: ${task.cpus}"
 
   input:
-  val x from processAInput
-  file a_file from processAInputFiles
+  val x
+  file a_file
 
   output:
-  val x into processAOutput
-  val x into processCInput
-  val x into processDInput
-  file "*.txt"
+  val x emit: outA
+  val x emit: outC
+  val x emit: outD
+  path "*.txt" emit: outFiles
 
   script:
   """
@@ -127,10 +122,10 @@ process processB {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
 
   input:
-  val x from processAOutput
+  val x
 
   output:
-  file "newfile"
+  path "newfile" emit: outB
 
   script:
   """
@@ -147,10 +142,10 @@ process processC {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
 
   input:
-  val x from processCInput
+  val x
 
   output:
-  val x
+  val x emit: outCDone
 
   script:
   """
@@ -166,10 +161,10 @@ process processD {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
 
   input:
-  val x from processDInput
+  val x
 
   output:
-  val x
+  val x emit: outDDone
 
   script:
   """
@@ -186,12 +181,29 @@ process processD {
 // =====================================================
 
 workflow {
+  // Build channels for A
+  def processAInput      = Channel.from( [1] * numberRepetitionsForProcessA )
+  def processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
+                                  .take( numberRepetitionsForProcessA )
+
+  // Optional generator (standalone)
   if (params.run_generator) {
     GENERATE_RESULTS()
   }
-  // processes A–D rely on their channels declared above; just invoke them
-  processA()
-  processB()
-  processC()
-  processD()
+
+  // Invoke A
+  def A = processA(processAInput, processAInputFiles)
+
+  // Wire A -> B,C,D
+  def B = processB(A.out.outA)
+  def C = processC(A.out.outC)
+  def D = processD(A.out.outD)
+
+  // (Optional) expose workflow-level outputs
+  emit:
+    gen_dir = params.run_generator ? GENERATE_RESULTS.out.generated_dir : Channel.empty()
+    a_files = A.out.outFiles
+    b_file  = B.out.outB
+    c_val   = C.out.outCDone
+    d_val   = D.out.outDDone
 }
