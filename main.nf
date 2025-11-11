@@ -67,7 +67,7 @@ processAWriteToDiskMb        = (params.processAWriteToDiskMb ?: 1) as int
 
 /**
  * Generates N tiny files under params.gen_outdir.
- * No outputs declared; we just publishDir so CloudOS collects them.
+ * We use publishDir so CloudOS captures the folder; no outputs required.
  */
 process GENERATE_RESULTS {
   tag "generate ${params.gen_count} -> ${params.gen_outdir}"
@@ -76,10 +76,6 @@ process GENERATE_RESULTS {
 
   when:
   params.run_generator
-
-  input:
-  val count
-  val outdir
 
   script:
   """
@@ -99,6 +95,7 @@ process processA {
   val x
   file a_file
 
+  // three vals (fan-out) + files
   output:
   val x
   val x
@@ -108,7 +105,6 @@ process processA {
   script:
   """
   ${params.pre_script}
-  # Simulate the time the process takes to finish
   pwd=\$(basename "\$PWD" | cut -c1-6)
   echo "\$pwd"
   timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
@@ -190,26 +186,22 @@ workflow {
 
   // Optional generator (standalone)
   if (params.run_generator) {
-    def gen_count_ch  = Channel.value( params.gen_count )
-    def gen_outdir_ch = Channel.value( params.gen_outdir )
-    GENERATE_RESULTS( gen_count_ch, gen_outdir_ch )
+    GENERATE_RESULTS()
   }
 
-  // Run A
-  def A = processA( chA_vals, chA_files )
+  // Invoke A and destructure its positional outputs
+  // processA outputs (in order): val, val, val, files
+  def (A_to_B, A_to_C, A_to_D, A_files) = processA( chA_vals, chA_files )
 
-  // Wire A -> B,C,D using positional outputs
-  // processA outputs (in order): val, val, val, file(s)
-  def A_to_B = A.out[0]
-  def A_to_C = A.out[1]
-  def A_to_D = A.out[2]
-  def A_files = A.out[3]
+  // Downstream steps
+  def (B_file) = processB( A_to_B )
+  def (C_val)  = processC( A_to_C )
+  def (D_val)  = processD( A_to_D )
 
-  def B = processB( A_to_B )
-  def C = processC( A_to_C )
-  def D = processD( A_to_D )
-
-  // (Optionally) expose something as workflow outputs
+  // Expose useful outputs if you like
   emit:
     a_files = A_files
+    b_file  = B_file
+    c_val   = C_val
+    d_val   = D_val
 }
