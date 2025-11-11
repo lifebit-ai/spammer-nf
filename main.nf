@@ -4,9 +4,9 @@ nextflow.enable.dsl = 2
 fileSystem = params.dataLocation?.contains(':') ? params.dataLocation.split(':')[0] : 'local'
 
 // ---------- generator params (new) ----------
-params.run_generator = params.run_generator ?: true          // set to false to skip generator
-params.gen_count     = (params.gen_count ?: 3000) as int     // how many files to generate
-params.gen_outdir    = params.gen_outdir ?: 'results'        // output directory for generated files
+params.run_generator = (params.run_generator != null ? params.run_generator : true)
+params.gen_count     = (params.gen_count ?: 3000) as int
+params.gen_outdir    = params.gen_outdir ?: 'results'
 
 // ---------- header log ----------
 log.info "\nPARAMETERS SUMMARY"
@@ -51,26 +51,23 @@ if (params.executor == 'google-lifesciences') {
   log.info "lifeSciences.usePrivateAddress        : ${params.gls_usePrivateAddress}"
   log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
-// generator logs (new)
 log.info "run_generator                         : ${params.run_generator}"
 log.info "gen_count                             : ${params.gen_count}"
 log.info "gen_outdir                            : ${params.gen_outdir}"
 log.info ""
 
-// ---------- existing A setup ----------
+// ---------- defaults to avoid nulls ----------
 numberRepetitionsForProcessA = (params.repsProcessA ?: 1) as int
 numberFilesForProcessA       = (params.filesProcessA ?: 1) as int
-processAWriteToDiskMb        = params.processAWriteToDiskMb ?: 1
+processAWriteToDiskMb        = (params.processAWriteToDiskMb ?: 1) as int
 
-processAInput      = Channel.from( [1] * numberRepetitionsForProcessA )
-processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
-                             .take( numberRepetitionsForProcessA )
+// =====================================================
+//                      PROCESSES
+// =====================================================
 
-// ---------- generator (new) ----------
 process GENERATE_RESULTS {
   tag "generate ${params.gen_count} files -> ${params.gen_outdir}"
   cpus 1
-  // publish so CloudOS collects the generated folder as an output
   publishDir "${params.gen_outdir}", mode: 'copy', overwrite: true
 
   when:
@@ -90,20 +87,19 @@ process GENERATE_RESULTS {
   """
 }
 
-// ---------- existing processes ----------
 process processA {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
   tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
 
   input:
-  val x from processAInput
-  file(a_file) from processAInputFiles
+  val x
+  file a_file
 
   output:
-  val x into processAOutput
-  val x into processCInput
-  val x into processDInput
-  file "*.txt"
+  val x         emit: outA
+  val x         emit: outC
+  val x         emit: outD
+  path "*.txt"  emit: outFiles
 
   script:
   """
@@ -126,7 +122,10 @@ process processB {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
 
   input:
-  val x from processAOutput
+  val x
+
+  output:
+  path "newfile", emit: out
 
   script:
   """
@@ -143,7 +142,10 @@ process processC {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
 
   input:
-  val x from processCInput
+  val x
+
+  output:
+  val x emit: out
 
   script:
   """
@@ -159,7 +161,10 @@ process processD {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
 
   input:
-  val x from processDInput
+  val x
+
+  output:
+  val x emit: out
 
   script:
   """
@@ -169,4 +174,40 @@ process processD {
   sleep "\$timeToWait"
   ${params.post_script}
   """
+}
+
+// =====================================================
+//                      WORKFLOW
+// =====================================================
+
+workflow {
+
+  // Inputs for processA
+  def processAInput      = Channel.from( [1] * numberRepetitionsForProcessA )
+  def processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
+                                  .take( numberRepetitionsForProcessA )
+
+  // Optional generator (runs independently; publishes results/)
+  if (params.run_generator) {
+    GENERATE_RESULTS()
+  }
+
+  // A -> B,C,D wiring
+  def a = processA(processAInput, processAInputFiles)
+
+  // processB consumes A's first val
+  def b = processB(a.out.outA)
+
+  // processC consumes A's second val
+  def c = processC(a.out.outC)
+
+  // processD consumes A's third val
+  def d = processD(a.out.outD)
+
+  // touch channels to avoid “unused” warnings and to pin dataflow
+  emit:
+    aFiles = a.out.outFiles
+    bFile  = b.out
+    cVal   = c.out
+    dVal   = d.out
 }
