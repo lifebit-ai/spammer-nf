@@ -1,4 +1,4 @@
-nextflow.enable.dsl=2
+nextflow.enable.dsl=1
 
 // ------------ Detect filesystem ------------
 fileSystem = params.dataLocation?.contains(':') ? params.dataLocation.split(':')[0] : 'local'
@@ -35,13 +35,13 @@ log.info "queueSize                             : ${params.queueSize}"
 log.info "pre_script                            : ${params.pre_script}"
 log.info "post_script                           : ${params.post_script}"
 log.info "executor                              : ${params.executor}"
-if (params.executor == 'awsbatch') {
+if(params.executor == 'awsbatch') {
   log.info "aws_batch_cliPath                     : ${params.aws_batch_cliPath}"
   log.info "aws_batch_fetchInstanceType           : ${params.aws_batch_fetchInstanceType}"
   log.info "aws_batch_process_queue               : ${params.aws_batch_process_queue}"
   log.info "aws_batch_docker_run_options          : ${params.aws_batch_docker_run_options}"
 }
-if (params.executor == 'google-lifesciences') {
+if(params.executor == 'google-lifesciences') {
   log.info "gls_bootDiskSize                      : ${params.gls_bootDiskSize}"
   log.info "gls_preemptible                       : ${params.gls_preemptible}"
   log.info "gls_usePrivateAddress                 : ${params.gls_usePrivateAddress}"
@@ -61,8 +61,13 @@ numberRepetitionsForProcessA = (params.repsProcessA ?: 1) as int
 numberFilesForProcessA       = (params.filesProcessA ?: 1) as int
 processAWriteToDiskMb        = (params.processAWriteToDiskMb ?: 1) as int
 
+// ------------ Channels ------------
+processAInput       = Channel.from( [1] * numberRepetitionsForProcessA )
+processAInputFiles  = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
+                             .take( numberRepetitionsForProcessA )
+
 // =====================================================
-//                      PROCESSES
+//                      PROCESSES (DSL1)
 // =====================================================
 
 /**
@@ -70,23 +75,20 @@ processAWriteToDiskMb        = (params.processAWriteToDiskMb ?: 1) as int
  * Writes into local 'generated/' and declares outputs; publishDir copies to gen_outdir.
  */
 process GENERATE_RESULTS {
-  tag "generate ${params.gen_count} -> ${params.gen_outdir}"
-  cpus 1
   publishDir "${params.gen_outdir}", mode: 'copy', overwrite: true
+  tag "generate ${params.gen_count} -> ${params.gen_outdir}"
 
-  input:
-  val count
-  val outdir
+  when:
+  params.run_generator
 
-  // Explicit outputs so Nextflow publishes everything
   output:
-  path "generated/*" emit: gen_files
+  file "generated/*" into genFiles
 
   script:
   """
   set -euo pipefail
   mkdir -p generated
-  for i in \$(seq 1 ${count}); do
+  for i in \$(seq 1 ${params.gen_count}); do
     printf "This is file %d\\n" "\$i" > "generated/result_\$(printf '%05d' "\$i").txt"
   done
   echo "Created \$(ls -1 generated | wc -l) files in generated"
@@ -98,15 +100,14 @@ process processA {
   tag "cpus: ${task.cpus}"
 
   input:
-  val x
-  path a_file
+  val x from processAInput
+  file a_file from processAInputFiles
 
-  // three vals (fan-out) + files
   output:
-  val x
-  val x
-  val x
-  path "*.txt"
+  val x into processAOutput
+  val x into processCInput
+  val x into processDInput
+  file "*.txt" into processAFiles
 
   script:
   """
@@ -133,12 +134,11 @@ process processA {
 
 process processB {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
-
   input:
-  val x
+  val x from processAOutput
 
   output:
-  path "newfile"
+  file "newfile" into processBFile
 
   script:
   """
@@ -159,12 +159,11 @@ process processB {
 
 process processC {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
-
   input:
-  val x
+  val x from processCInput
 
   output:
-  val x
+  val x into processCOut
 
   script:
   """
@@ -184,12 +183,11 @@ process processC {
 
 process processD {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
-
   input:
-  val x
+  val x from processDInput
 
   output:
-  val x
+  val x into processDOut
 
   script:
   """
@@ -208,36 +206,12 @@ process processD {
 }
 
 // =====================================================
-//                      WORKFLOW
+//                      WORKFLOW (DSL1 implicitly wires via channels)
 // =====================================================
 
-workflow {
-
-  // Inputs for A
-  def chA_vals  = Channel.from( [1] * numberRepetitionsForProcessA )
-  def chA_files = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
-                         .take( numberRepetitionsForProcessA )
-
-  // Generator (standalone) with explicit outputs
-  if (params.run_generator) {
-    def gen_count_ch  = Channel.value( params.gen_count )
-    def gen_outdir_ch = Channel.value( params.gen_outdir )
-    def (gen_files)   = GENERATE_RESULTS( gen_count_ch, gen_outdir_ch )
-    // gen_files.take(3).view { f -> "GEN: ${f}" } // optional debug
-  }
-
-  // Invoke A and destructure its positional outputs (val, val, val, files)
-  def (A_to_B, A_to_C, A_to_D, A_files) = processA( chA_vals, chA_files )
-
-  // Downstream steps
-  def (B_file) = processB( A_to_B )
-  def (C_val)  = processC( A_to_C )
-  def (D_val)  = processD( A_to_D )
-
-  // Expose useful outputs if you like
-  emit:
-    a_files = A_files
-    b_file  = B_file
-    c_val   = C_val
-    d_val   = D_val
+// Kick off the optional generator
+if( params.run_generator ) {
+  GENERATE_RESULTS()
 }
+
+// Nothing else needed here; processes A–D are already wired via channels above.
