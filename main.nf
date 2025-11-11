@@ -1,14 +1,14 @@
 nextflow.enable.dsl=2
 
-// -------- detect filesystem --------
+// ------------ Detect filesystem ------------
 fileSystem = params.dataLocation?.contains(':') ? params.dataLocation.split(':')[0] : 'local'
 
-// -------- generator params (new) --------
+// ------------ Generator params (new) ------------
 params.run_generator = (params.run_generator != null ? params.run_generator : true)
 params.gen_count     = (params.gen_count ?: 3000) as int
 params.gen_outdir    = params.gen_outdir ?: 'results'
 
-// -------- header log --------
+// ------------ Header log ------------
 log.info "\nPARAMETERS SUMMARY"
 log.info "mainScript                            : ${params.mainScript}"
 log.info "config                                : ${params.config}"
@@ -56,7 +56,7 @@ log.info "gen_count                             : ${params.gen_count}"
 log.info "gen_outdir                            : ${params.gen_outdir}"
 log.info ""
 
-// -------- defaults to avoid nulls --------
+// ------------ Defaults to avoid nulls ------------
 numberRepetitionsForProcessA = (params.repsProcessA ?: 1) as int
 numberFilesForProcessA       = (params.filesProcessA ?: 1) as int
 processAWriteToDiskMb        = (params.processAWriteToDiskMb ?: 1) as int
@@ -65,6 +65,10 @@ processAWriteToDiskMb        = (params.processAWriteToDiskMb ?: 1) as int
 //                      PROCESSES
 // =====================================================
 
+/**
+ * Generates N tiny files under params.gen_outdir.
+ * No outputs declared; we just publishDir so CloudOS collects them.
+ */
 process GENERATE_RESULTS {
   tag "generate ${params.gen_count} -> ${params.gen_outdir}"
   cpus 1
@@ -73,13 +77,13 @@ process GENERATE_RESULTS {
   when:
   params.run_generator
 
-  output:
-  path "${params.gen_outdir}" emit: generated_dir
+  input:
+  val count
+  val outdir
 
   script:
   """
   mkdir -p "${params.gen_outdir}"
-  # Create result_00001.txt ... result_<gen_count>.txt
   for i in \$(seq 1 ${params.gen_count}); do
     printf "This is file %d\\n" "\$i" > "${params.gen_outdir}/result_\$(printf '%05d' "\$i").txt"
   done
@@ -96,10 +100,10 @@ process processA {
   file a_file
 
   output:
-  val x emit: outA
-  val x emit: outC
-  val x emit: outD
-  path "*.txt" emit: outFiles
+  val x
+  val x
+  val x
+  file "*.txt"
 
   script:
   """
@@ -125,12 +129,11 @@ process processB {
   val x
 
   output:
-  path "newfile" emit: outB
+  file "newfile"
 
   script:
   """
   ${params.pre_script}
-  # Simulate the time the process takes to finish
   timeToWait=\$(shuf -i ${params.processBTimeRange} -n 1)
   sleep "\$timeToWait"
   dd if=/dev/urandom of=newfile bs=1M count=${params.processBWriteToDiskMb}
@@ -145,12 +148,11 @@ process processC {
   val x
 
   output:
-  val x emit: outCDone
+  val x
 
   script:
   """
   ${params.pre_script}
-  # Simulate the time the process takes to finish
   timeToWait=\$(shuf -i ${params.processCTimeRange} -n 1)
   sleep "\$timeToWait"
   ${params.post_script}
@@ -164,12 +166,11 @@ process processD {
   val x
 
   output:
-  val x emit: outDDone
+  val x
 
   script:
   """
   ${params.pre_script}
-  # Simulate the time the process takes to finish
   timeToWait=\$(shuf -i ${params.processDTimeRange} -n 1)
   sleep "\$timeToWait"
   ${params.post_script}
@@ -181,29 +182,34 @@ process processD {
 // =====================================================
 
 workflow {
-  // Build channels for A
-  def processAInput      = Channel.from( [1] * numberRepetitionsForProcessA )
-  def processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
-                                  .take( numberRepetitionsForProcessA )
+
+  // Inputs for A
+  def chA_vals  = Channel.from( [1] * numberRepetitionsForProcessA )
+  def chA_files = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
+                         .take( numberRepetitionsForProcessA )
 
   // Optional generator (standalone)
   if (params.run_generator) {
-    GENERATE_RESULTS()
+    def gen_count_ch  = Channel.value( params.gen_count )
+    def gen_outdir_ch = Channel.value( params.gen_outdir )
+    GENERATE_RESULTS( gen_count_ch, gen_outdir_ch )
   }
 
-  // Invoke A
-  def A = processA(processAInput, processAInputFiles)
+  // Run A
+  def A = processA( chA_vals, chA_files )
 
-  // Wire A -> B,C,D
-  def B = processB(A.out.outA)
-  def C = processC(A.out.outC)
-  def D = processD(A.out.outD)
+  // Wire A -> B,C,D using positional outputs
+  // processA outputs (in order): val, val, val, file(s)
+  def A_to_B = A.out[0]
+  def A_to_C = A.out[1]
+  def A_to_D = A.out[2]
+  def A_files = A.out[3]
 
-  // (Optional) expose workflow-level outputs
+  def B = processB( A_to_B )
+  def C = processC( A_to_C )
+  def D = processD( A_to_D )
+
+  // (Optionally) expose something as workflow outputs
   emit:
-    gen_dir = params.run_generator ? GENERATE_RESULTS.out.generated_dir : Channel.empty()
-    a_files = A.out.outFiles
-    b_file  = B.out.outB
-    c_val   = C.out.outCDone
-    d_val   = D.out.outDDone
+    a_files = A_files
 }
