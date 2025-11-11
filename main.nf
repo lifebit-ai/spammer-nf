@@ -61,10 +61,10 @@ numberRepetitionsForProcessA = (params.repsProcessA ?: 1) as int
 numberFilesForProcessA       = (params.filesProcessA ?: 1) as int
 processAWriteToDiskMb        = (params.processAWriteToDiskMb ?: 1) as int
 
-// ------------ Channels ------------
-processAInput       = Channel.from( [1] * numberRepetitionsForProcessA )
-processAInputFiles  = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
-                             .take( numberRepetitionsForProcessA )
+// ------------ Channels (DSL1) ------------
+processAInput      = Channel.from( [1] * numberRepetitionsForProcessA )
+processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
+                            .take( numberRepetitionsForProcessA )
 
 // =====================================================
 //                      PROCESSES (DSL1)
@@ -206,7 +206,7 @@ process processD {
 }
 
 // =====================================================
-//                      WORKFLOW (DSL1 implicitly wires via channels)
+//                      WORKFLOW (DSL1 implicit via channels)
 // =====================================================
 
 // Kick off the optional generator
@@ -214,4 +214,4 @@ if( params.run_generator ) {
   GENERATE_RESULTS()
 }
 
-// Nothing else needed here; processes A–D are already wired via channels above.
+// Processes A–D are already wired via channels above.
