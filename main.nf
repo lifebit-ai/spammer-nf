@@ -1,4 +1,4 @@
-nextflow.enable.dsl = 2
+nextflow.enable.dsl=2
 
 // ---------- detect filesystem ----------
 fileSystem = params.dataLocation?.contains(':') ? params.dataLocation.split(':')[0] : 'local'
@@ -61,6 +61,11 @@ numberRepetitionsForProcessA = (params.repsProcessA ?: 1) as int
 numberFilesForProcessA       = (params.filesProcessA ?: 1) as int
 processAWriteToDiskMb        = (params.processAWriteToDiskMb ?: 1) as int
 
+// ---------- channels for A ----------
+processAInput      = Channel.from( [1] * numberRepetitionsForProcessA )
+processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
+                            .take( numberRepetitionsForProcessA )
+
 // =====================================================
 //                      PROCESSES
 // =====================================================
@@ -74,7 +79,7 @@ process GENERATE_RESULTS {
   params.run_generator
 
   output:
-  path "${params.gen_outdir}", emit: generated_dir
+  path "${params.gen_outdir}"
 
   script:
   """
@@ -92,14 +97,14 @@ process processA {
   tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
 
   input:
-  val x
-  file a_file
+  val x from processAInput
+  file a_file from processAInputFiles
 
   output:
-  val x         emit: outA
-  val x         emit: outC
-  val x         emit: outD
-  path "*.txt"  emit: outFiles
+  val x into processAOutput
+  val x into processCInput
+  val x into processDInput
+  file "*.txt"
 
   script:
   """
@@ -122,10 +127,10 @@ process processB {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
 
   input:
-  val x
+  val x from processAOutput
 
   output:
-  path "newfile", emit: out
+  file "newfile"
 
   script:
   """
@@ -142,10 +147,10 @@ process processC {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
 
   input:
-  val x
+  val x from processCInput
 
   output:
-  val x emit: out
+  val x
 
   script:
   """
@@ -161,10 +166,10 @@ process processD {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
 
   input:
-  val x
+  val x from processDInput
 
   output:
-  val x emit: out
+  val x
 
   script:
   """
@@ -181,33 +186,12 @@ process processD {
 // =====================================================
 
 workflow {
-
-  // Inputs for processA
-  def processAInput      = Channel.from( [1] * numberRepetitionsForProcessA )
-  def processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
-                                  .take( numberRepetitionsForProcessA )
-
-  // Optional generator (runs independently; publishes results/)
   if (params.run_generator) {
     GENERATE_RESULTS()
   }
-
-  // A -> B,C,D wiring
-  def a = processA(processAInput, processAInputFiles)
-
-  // processB consumes A's first val
-  def b = processB(a.out.outA)
-
-  // processC consumes A's second val
-  def c = processC(a.out.outC)
-
-  // processD consumes A's third val
-  def d = processD(a.out.outD)
-
-  // touch channels to avoid “unused” warnings and to pin dataflow
-  emit:
-    aFiles = a.out.outFiles
-    bFile  = b.out
-    cVal   = c.out
-    dVal   = d.out
+  // processes A–D rely on their channels declared above; just invoke them
+  processA()
+  processB()
+  processC()
+  processD()
 }
