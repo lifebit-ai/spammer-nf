@@ -62,9 +62,12 @@ numberFilesForProcessA       = (params.filesProcessA ?: 1) as int
 processAWriteToDiskMb        = (params.processAWriteToDiskMb ?: 1) as int
 
 // ------------ Channels (DSL1) ------------
+// A's inputs
 processAInput      = Channel.from( [1] * numberRepetitionsForProcessA )
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
                             .take( numberRepetitionsForProcessA )
+// Generator trigger: emits a single value so the process runs once
+genTrigger         = Channel.from(1)
 
 // =====================================================
 //                      PROCESSES (DSL1)
@@ -80,6 +83,9 @@ process GENERATE_RESULTS {
 
   when:
   params.run_generator
+
+  input:
+  val t from genTrigger
 
   output:
   file "generated/*" into genFiles
@@ -134,6 +140,7 @@ process processA {
 
 process processB {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
+
   input:
   val x from processAOutput
 
@@ -159,6 +166,7 @@ process processB {
 
 process processC {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
+
   input:
   val x from processCInput
 
@@ -183,6 +191,7 @@ process processC {
 
 process processD {
   publishDir "${params.output}/${task.hash}", mode: 'copy'
+
   input:
   val x from processDInput
 
@@ -206,12 +215,9 @@ process processD {
 }
 
 // =====================================================
-//                      WORKFLOW (DSL1 implicit via channels)
+//                      WORKFLOW (DSL1: implicit via channels)
 // =====================================================
 
-// Kick off the optional generator
-if( params.run_generator ) {
-  GENERATE_RESULTS()
-}
-
-// Processes A–D are already wired via channels above.
+// Nothing to “call” here; all processes are driven by channels.
+// GENERATE_RESULTS runs once via `genTrigger` when run_generator=true.
+// A→B/C/D are wired through their channels.
