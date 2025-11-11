@@ -3,7 +3,7 @@ nextflow.enable.dsl=2
 // ------------ Detect filesystem ------------
 fileSystem = params.dataLocation?.contains(':') ? params.dataLocation.split(':')[0] : 'local'
 
-// ------------ Generator params (new) ------------
+// ------------ Generator params ------------
 params.run_generator = (params.run_generator != null ? params.run_generator : true)
 params.gen_count     = (params.gen_count ?: 3000) as int
 params.gen_outdir    = params.gen_outdir ?: 'results'
@@ -66,24 +66,31 @@ processAWriteToDiskMb        = (params.processAWriteToDiskMb ?: 1) as int
 // =====================================================
 
 /**
- * Generates N tiny files under params.gen_outdir.
- * We use publishDir so CloudOS captures the folder; no outputs required.
+ * Generates N tiny files and PUBLISHES them.
+ * We write into a local 'generated/' folder and declare those files as outputs;
+ * publishDir then copies them to params.gen_outdir so CloudOS shows them.
  */
 process GENERATE_RESULTS {
   tag "generate ${params.gen_count} -> ${params.gen_outdir}"
   cpus 1
   publishDir "${params.gen_outdir}", mode: 'copy', overwrite: true
 
-  when:
-  params.run_generator
+  input:
+  val count
+  val outdir
+
+  // ✅ explicit outputs so Nextflow publishes everything
+  output:
+  file "generated/*" emit: gen_files
 
   script:
   """
-  mkdir -p "${params.gen_outdir}"
-  for i in \$(seq 1 ${params.gen_count}); do
-    printf "This is file %d\\n" "\$i" > "${params.gen_outdir}/result_\$(printf '%05d' "\$i").txt"
+  set -euo pipefail
+  mkdir -p generated
+  for i in \$(seq 1 ${count}); do
+    printf "This is file %d\\n" "\$i" > "generated/result_\$(printf '%05d' "\$i").txt"
   done
-  echo "Created \$(ls -1 "${params.gen_outdir}" | wc -l) files in ${params.gen_outdir}"
+  echo "Created \$(ls -1 generated | wc -l) files in generated"
   """
 }
 
@@ -107,9 +114,17 @@ process processA {
   ${params.pre_script}
   pwd=\$(basename "\$PWD" | cut -c1-6)
   echo "\$pwd"
-  timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
+  # timeToWait via shuf if available; else simple fallback (3-10 style range expected)
+  if command -v shuf >/dev/null 2>&1; then
+    timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
+  else
+    lo=\$(echo ${params.processATimeRange} | cut -d- -f1)
+    hi=\$(echo ${params.processATimeRange} | cut -d- -f2)
+    span=\$((hi - lo + 1))
+    timeToWait=\$(( (RANDOM % span) + lo ))
+  fi
   for i in \$(seq 1 ${numberFilesForProcessA}); do
-    head -c ${processAWriteToDiskMb}MB /dev/urandom > "\${pwd}_file_\${i}.txt"
+    dd if=/dev/urandom of="\${pwd}_file_\${i}.txt" bs=1M count=${processAWriteToDiskMb} status=none
     sleep ${params.processATimeBetweenFileCreationInSecs}
   done
   sleep "\$timeToWait"
@@ -130,9 +145,16 @@ process processB {
   script:
   """
   ${params.pre_script}
-  timeToWait=\$(shuf -i ${params.processBTimeRange} -n 1)
+  if command -v shuf >/dev/null 2>&1; then
+    timeToWait=\$(shuf -i ${params.processBTimeRange} -n 1)
+  else
+    lo=\$(echo ${params.processBTimeRange} | cut -d- -f1)
+    hi=\$(echo ${params.processBTimeRange} | cut -d- -f2)
+    span=\$((hi - lo + 1))
+    timeToWait=\$(( (RANDOM % span) + lo ))
+  fi
   sleep "\$timeToWait"
-  dd if=/dev/urandom of=newfile bs=1M count=${params.processBWriteToDiskMb}
+  dd if=/dev/urandom of=newfile bs=1M count=${params.processBWriteToDiskMb} status=none
   ${params.post_script}
   """
 }
@@ -149,7 +171,14 @@ process processC {
   script:
   """
   ${params.pre_script}
-  timeToWait=\$(shuf -i ${params.processCTimeRange} -n 1)
+  if command -v shuf >/dev/null 2>&1; then
+    timeToWait=\$(shuf -i ${params.processCTimeRange} -n 1)
+  else
+    lo=\$(echo ${params.processCTimeRange} | cut -d- -f1)
+    hi=\$(echo ${params.processCTimeRange} | cut -d- -f2)
+    span=\$((hi - lo + 1))
+    timeToWait=\$(( (RANDOM % span) + lo ))
+  fi
   sleep "\$timeToWait"
   ${params.post_script}
   """
@@ -167,7 +196,14 @@ process processD {
   script:
   """
   ${params.pre_script}
-  timeToWait=\$(shuf -i ${params.processDTimeRange} -n 1)
+  if command -v shuf >/dev/null 2>&1; then
+    timeToWait=\$(shuf -i ${params.processDTimeRange} -n 1)
+  else
+    lo=\$(echo ${params.processDTimeRange} | cut -d- -f1)
+    hi=\$(echo ${params.processDTimeRange} | cut -d- -f2)
+    span=\$((hi - lo + 1))
+    timeToWait=\$(( (RANDOM % span) + lo ))
+  fi
   sleep "\$timeToWait"
   ${params.post_script}
   """
@@ -184,13 +220,16 @@ workflow {
   def chA_files = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
                          .take( numberRepetitionsForProcessA )
 
-  // Optional generator (standalone)
+  // Generator (standalone), now with explicit outputs so everything is published
   if (params.run_generator) {
-    GENERATE_RESULTS()
+    def gen_count_ch  = Channel.value( params.gen_count )
+    def gen_outdir_ch = Channel.value( params.gen_outdir )
+    def (gen_files)   = GENERATE_RESULTS( gen_count_ch, gen_outdir_ch )
+    // optional: log a few to confirm
+    // gen_files.take(3).view { f -> "GEN: ${f}" }
   }
 
-  // Invoke A and destructure its positional outputs
-  // processA outputs (in order): val, val, val, files
+  // Invoke A and destructure its positional outputs (val, val, val, files)
   def (A_to_B, A_to_C, A_to_D, A_files) = processA( chA_vals, chA_files )
 
   // Downstream steps
