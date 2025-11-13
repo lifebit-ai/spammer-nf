@@ -9,14 +9,8 @@ log.info "fileSystem                            : ${fileSystem}"
 log.info "dataLocation                          : ${params.dataLocation}"
 log.info "fileSuffix                            : ${params.fileSuffix}"
 log.info "repsProcessA                          : ${params.repsProcessA}"
-log.info "processAWriteToDiskMb                 : ${params.processAWriteToDiskMb}"
-log.info "processATimeRange                     : ${params.processATimeRange}"
+log.info "processAWriteToDiskKb                 : ${params.processAWriteToDiskKb}"
 log.info "filesProcessA                         : ${params.filesProcessA}"
-log.info "processATimeBetweenFileCreationInSecs : ${params.processATimeBetweenFileCreationInSecs}"
-log.info "processBTimeRange                     : ${params.processBTimeRange}"
-log.info "processBWriteToDiskMb                 : ${params.processBWriteToDiskMb}"
-log.info "processCTimeRange                     : ${params.processCTimeRange}"
-log.info "processDTimeRange                     : ${params.processDTimeRange}"
 log.info "output                                : ${params.output}"
 log.info "echo                                  : ${params.echo}"
 log.info "cpus                                  : ${params.cpus}"
@@ -48,7 +42,7 @@ log.info ""
 
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
-processAWriteToDiskMb = params.processAWriteToDiskMb
+processAWriteToDiskKb = params.processAWriteToDiskKb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
@@ -72,58 +66,9 @@ process processA {
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
 	echo \$pwd
-	timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
 	for i in {1..${numberFilesForProcessA}};
-	do head -c ${processAWriteToDiskMb}MB /dev/urandom > "\${pwd}"_file_\${i}.txt
-	sleep ${params.processATimeBetweenFileCreationInSecs}
+	  do head -c ${processAWriteToDiskKb}KB /dev/urandom > "\${pwd}"_file_\${i}.txt
 	done;
-	sleep \$timeToWait
-	echo "task cpus: ${task.cpus}"
-	${params.post_script}
-	"""
-}
-
-process processB {
-	publishDir "${params.output}/${task.hash}", mode: 'copy'
-	input:
-	val x from processAOutput
-
-
-	"""
-	${params.pre_script}
-    # Simulate the time the processes takes to finish
-    timeToWait=\$(shuf -i ${params.processBTimeRange} -n 1)
-    sleep \$timeToWait
-	dd if=/dev/urandom of=newfile bs=1M count=${params.processBWriteToDiskMb}
-	${params.post_script}
-	"""
-}
-
-process processC {
-	publishDir "${params.output}/${task.hash}", mode: 'copy'
-	input: 
-	val x from processCInput
-
-	"""
-	${params.pre_script}
-    # Simulate the time the processes takes to finish
-    timeToWait=\$(shuf -i ${params.processCTimeRange} -n 1)
-    sleep \$timeToWait
-	${params.post_script}
-	"""
-}
-
-
-process processD {
-	publishDir "${params.output}/${task.hash}", mode: 'copy'
-	input: 
-	val x from processDInput
-
-	"""
-	${params.pre_script}
-    # Simulate the time the processes takes to finish
-    timeToWait=\$(shuf -i ${params.processDTimeRange} -n 1)
-    sleep \$timeToWait
 	${params.post_script}
 	"""
 }
