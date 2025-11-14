@@ -62,13 +62,18 @@ process processA {
 
 	script:
 	"""
+	echo "\$(date) Script execution started..."
+	START_TIME=\$(date +%s)
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
 	echo \$pwd
+
 	for i in {1..${numberFilesForProcessA}};
 	  do head -c ${processAWriteToDiskKb}KB /dev/urandom > "\${pwd}"_file_\${i}.txt
 	done;
 	${params.post_script}
+	END_TIME=\$(date +%s)
+	echo "\$(date) Script execution completed. Time taken to finish real script execution \$((END_TIME-START_TIME))s"
 	"""
 }
