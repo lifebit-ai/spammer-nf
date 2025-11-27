@@ -1,12 +1,12 @@
 nextflow.enable.dsl = 2
 
 /*
- * Minimal spammer-style smoke test
+ * Minimal spammer-style smoke test (DSL2)
  * - Launches N tiny jobs (default 1)
  * - Each writes a small result file into params.output_dir
  */
 
-params.n_jobs      = params.n_jobs ?: 1
+params.n_jobs      = (params.n_jobs ?: 1) as int
 params.message     = params.message ?: 'Hello from spammer smoke test'
 params.output_dir  = params.output_dir ?: 'results'
 
@@ -20,11 +20,11 @@ log.info "  output_dir = ${params.output_dir}"
  ************************************/
 
 Channel
-    .from( 1..params.n_jobs )
+    .from(1..params.n_jobs)
     .set { job_ids }
 
 /************************************
- * PROCESSES
+ * PROCESS
  ************************************/
 
 process SPAMMER_SMOKE {
@@ -38,10 +38,10 @@ process SPAMMER_SMOKE {
     time '10 min'
 
     input:
-    val job_id from job_ids
+    val job_id
 
     output:
-    path "result_${job_id}.txt"
+    path "result_${job_id}.txt" into result_files
 
     """
     echo "Job ID: ${job_id}"                             >  result_${job_id}.txt
@@ -49,4 +49,17 @@ process SPAMMER_SMOKE {
     echo "Timestamp: \$(date -u '+%Y-%m-%dT%H:%M:%SZ')" >> result_${job_id}.txt
     echo "Hostname: \$(hostname)"                       >> result_${job_id}.txt
     """
+}
+
+/************************************
+ * WORKFLOW (REQUIRED IN DSL2)
+ ************************************/
+
+workflow {
+
+    main:
+        SPAMMER_SMOKE(job_ids)
+
+    emit:
+        result_files
 }
