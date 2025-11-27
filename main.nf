@@ -57,7 +57,6 @@ process SPAMMER_SMOKE {
  ****************************************/
 
 workflow {
-    take: JOB_IDS
 
     main:
         SPAMMER_SMOKE(JOB_IDS)
@@ -65,3 +64,4 @@ workflow {
     emit:
         RESULT_FILES
 }
+
