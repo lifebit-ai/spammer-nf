@@ -1,129 +1,67 @@
-// If gs:// or s3:// or https://, else it's local
-fileSystem = params.dataLocation.contains(':') ? params.dataLocation.split(':')[0] : 'local'
+nextflow.enable.dsl = 2
 
-// Header log info
-log.info "\nPARAMETERS SUMMARY"
-log.info "mainScript                            : ${params.mainScript}"
-log.info "config                                : ${params.config}"
-log.info "fileSystem                            : ${fileSystem}"
-log.info "dataLocation                          : ${params.dataLocation}"
-log.info "fileSuffix                            : ${params.fileSuffix}"
-log.info "repsProcessA                          : ${params.repsProcessA}"
-log.info "processAWriteToDiskMb                 : ${params.processAWriteToDiskMb}"
-log.info "processATimeRange                     : ${params.processATimeRange}"
-log.info "filesProcessA                         : ${params.filesProcessA}"
-log.info "processATimeBetweenFileCreationInSecs : ${params.processATimeBetweenFileCreationInSecs}"
-log.info "processBTimeRange                     : ${params.processBTimeRange}"
-log.info "processBWriteToDiskMb                 : ${params.processBWriteToDiskMb}"
-log.info "processCTimeRange                     : ${params.processCTimeRange}"
-log.info "processDTimeRange                     : ${params.processDTimeRange}"
-log.info "output                                : ${params.output}"
-log.info "echo                                  : ${params.echo}"
-log.info "cpus                                  : ${params.cpus}"
-log.info "processA_cpus                         : ${params.processA_cpus}"
-log.info "errorStrategy                         : ${params.errorStrategy}"
-log.info "container                             : ${params.container}"
-log.info "maxForks                              : ${params.maxForks}"
-log.info "queueSize                             : ${params.queueSize}"
-log.info "pre_script                            : ${params.pre_script}"
-log.info "post_script                           : ${params.post_script}"
-log.info "executor                              : ${params.executor}"
-if(params.executor == 'awsbatch') {
-log.info "aws_batch_cliPath                     : ${params.aws_batch_cliPath}"
-log.info "aws_batch_fetchInstanceType           : ${params.aws_batch_fetchInstanceType}"
-log.info "aws_batch_process_queue               : ${params.aws_batch_process_queue}"
-log.info "aws_batch_docker_run_options          : ${params.aws_batch_docker_run_options}"
-}
-if(params.executor == 'google-lifesciences') {
-log.info "gls_bootDiskSize                      : ${params.gls_bootDiskSize}"
-log.info "gls_preemptible                       : ${params.gls_preemptible}"
-log.info "gls_usePrivateAddress                 : ${params.gls_usePrivateAddress}"
-log.info "zone                                  : ${params.zone}"
-log.info "network                               : ${params.network}"
-log.info "subnetwork                            : ${params.subnetwork}"
-log.info "lifeSciences.usePrivateAddress        : ${params.gls_usePrivateAddress}"
-log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
-}
-log.info ""
+/*
+ * Minimal spammer-style smoke test
+ *
+ * - Launches N tiny jobs (default 1)
+ * - Each writes a small result file into params.output_dir
+ * - Designed to finish quickly and prove CloudOS works end-to-end
+ */
 
-numberRepetitionsForProcessA = params.repsProcessA
-numberFilesForProcessA = params.filesProcessA
-processAWriteToDiskMb = params.processAWriteToDiskMb
-processAInput = Channel.from([1] * numberRepetitionsForProcessA)
-processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
+params.n_jobs      = params.n_jobs ?: 1
+params.message     = params.message ?: 'Hello from spammer smoke test 🎉'
+params.output_dir  = params.output_dir ?: 'results'
 
-process processA {
-	publishDir "${params.output}/${task.hash}", mode: 'copy'
-	tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
+log.info "Smoke spammer starting"
+log.info "  n_jobs     = ${params.n_jobs}"
+log.info "  message    = ${params.message}"
+log.info "  output_dir = ${params.output_dir}"
 
-	input:
-	val x from processAInput
-	file(a_file) from processAInputFiles
+/****************************************
+ * CHANNELS
+ ****************************************/
 
-	output:
-	val x into processAOutput
-	val x into processCInput
-	val x into processDInput
-	file "*.txt"
+Channel
+    .from( 1..params.n_jobs as List<Integer> )
+    .set { JOB_IDS }
 
-	script:
-	"""
-	${params.pre_script}
-	# Simulate the time the processes takes to finish
-	pwd=`basename \${PWD} | cut -c1-6`
-	echo \$pwd
-	timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
-	for i in {1..${numberFilesForProcessA}};
-	do head -c ${processAWriteToDiskMb}MB /dev/urandom > "\${pwd}"_file_\${i}.txt
-	sleep ${params.processATimeBetweenFileCreationInSecs}
-	done;
-	sleep \$timeToWait
-	echo "task cpus: ${task.cpus}"
-	${params.post_script}
-	"""
+/****************************************
+ * PROCESSES
+ ****************************************/
+
+process SPAMMER_SMOKE {
+    tag { "job_${job_id}" }
+
+    publishDir "${params.output_dir}", mode: 'copy', overwrite: true
+
+    cpus 1
+    memory '512 MB'
+    time '10 min'
+
+    input:
+    val job_id from JOB_IDS
+
+    output:
+    path "result_${job_id}.txt" into RESULT_FILES
+
+    """
+    echo "Job ID: ${job_id}"                           >  result_${job_id}.txt
+    echo "Message: ${params.message}"                 >> result_${job_id}.txt
+    echo "Timestamp: \$(date -u '+%Y-%m-%dT%H:%M:%SZ')" >> result_${job_id}.txt
+    echo "Hostname: \$(hostname)"                     >> result_${job_id}.txt
+    """
 }
 
-process processB {
-	publishDir "${params.output}/${task.hash}", mode: 'copy'
-	input:
-	val x from processAOutput
+/****************************************
+ * WORKFLOW
+ ****************************************/
 
+workflow {
+    take: JOB_IDS
 
-	"""
-	${params.pre_script}
-    # Simulate the time the processes takes to finish
-    timeToWait=\$(shuf -i ${params.processBTimeRange} -n 1)
-    sleep \$timeToWait
-	dd if=/dev/urandom of=newfile bs=1M count=${params.processBWriteToDiskMb}
-	${params.post_script}
-	"""
-}
+    main:
+        SPAMMER_SMOKE(JOB_IDS)
 
-process processC {
-	publishDir "${params.output}/${task.hash}", mode: 'copy'
-	input: 
-	val x from processCInput
-
-	"""
-	${params.pre_script}
-    # Simulate the time the processes takes to finish
-    timeToWait=\$(shuf -i ${params.processCTimeRange} -n 1)
-    sleep \$timeToWait
-	${params.post_script}
-	"""
-}
-
-
-process processD {
-	publishDir "${params.output}/${task.hash}", mode: 'copy'
-	input: 
-	val x from processDInput
-
-	"""
-	${params.pre_script}
-    # Simulate the time the processes takes to finish
-    timeToWait=\$(shuf -i ${params.processDTimeRange} -n 1)
-    sleep \$timeToWait
-	${params.post_script}
-	"""
+    emit:
+        RESULT_FILES
 }
