@@ -61,9 +61,9 @@ process processA {
 	file(a_file) from processAInputFiles
 
 	output:
-	val x into processAOutput
-	val x into processCInput
-	val x into processDInput
+    set val(x), val(a_file.name) into processAOutput
+	set val(x), val(a_file.name) into processCInput
+	set val(x), val(a_file.name) into processDInput
 	file "*.txt"
 
 	script:
