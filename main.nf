@@ -85,9 +85,9 @@ process processA {
 
 process processB {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
-	input:
-	val x from processAOutput
 
+	input:
+	tuple val(x), val(filename) from processAOutput
 
 	"""
 	${params.pre_script}
@@ -101,8 +101,9 @@ process processB {
 
 process processC {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
+
 	input: 
-	val x from processCInput
+	tuple val(x), val(filename) from processCInput
 
 	"""
 	${params.pre_script}
@@ -116,8 +117,9 @@ process processC {
 
 process processD {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
+
 	input: 
-	val x from processDInput
+	tuple val(x), val(filename) from processDInput
 
 	"""
 	${params.pre_script}
