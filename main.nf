@@ -137,6 +137,8 @@ workflow {
 	processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 	processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
+exit(-1, 'testing pipeline failure')
+
 	processA(processAInput, processAInputFiles)
 	processB(processA.out.processAOutput)
 	processC(processA.out.processCInput)
