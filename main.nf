@@ -61,13 +61,13 @@ process processA {
 	path a_file
 
 	output:
-	val x, emit: processAOutput
-	val x, emit: processCInput
-	val x, emit: processDInput
+    tuple val(x), val(a_file.name) emit: processAOutput
+	tuple val(x), val(a_file.name) emit: processCInput
+	tuple val(x), val(a_file.name) emit: processDInput
 	file "*.txt"
 	file "*.html"
 
-	script:
+    script:
 	"""
     echo "sample=html file" > sample_1.html
     ls -al
@@ -89,7 +89,7 @@ process processA {
 process processB {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	input:
-	val x
+	tuple val(x), val(filename)
 
 
 	"""
@@ -105,7 +105,7 @@ process processB {
 process processC {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	input: 
-	val x
+	tuple val(x), val(filename)
 
 	"""
 	${params.pre_script}
@@ -120,7 +120,7 @@ process processC {
 process processD {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	input: 
-	val x
+	tuple val(x), val(filename)
 
 	"""
 	${params.pre_script}
@@ -137,7 +137,7 @@ workflow {
 	processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
 	processA(processAInput, processAInputFiles)
-	processB(processA.out.processAOutput)
-	processC(processA.out.processCInput)
-	processD(processA.out.processDInput)
+	processB(processA.out.processAOutput[0], processA.out.processAOutput[1])
+	processC(processA.out.processCInput[0], processA.out.processCInput[1])
+	processD(processA.out.processDInput[0], processA.out.processDInput[1])
 }
