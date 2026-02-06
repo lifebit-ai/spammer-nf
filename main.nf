@@ -52,6 +52,7 @@ processAWriteToDiskMb = params.processAWriteToDiskMb
 
 
 process processA {
+	debug true
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${params.cloud_storage_file}"
 
@@ -67,6 +68,7 @@ process processA {
 
 	script:
 	"""
+    ls -al
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
