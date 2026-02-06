@@ -61,9 +61,9 @@ process processA {
 	path a_file
 
 	output:
-    tuple val(x), val(a_file.name) emit: processAOutput
-	tuple val(x), val(a_file.name) emit: processCInput
-	tuple val(x), val(a_file.name) emit: processDInput
+  tuple val(x), val(a_file.name), emit: processAOutput
+	tuple val(x), val(a_file.name), emit: processCInput
+	tuple val(x), val(a_file.name), emit: processDInput
 	file "*.txt"
 	file "*.html"
 
@@ -137,7 +137,7 @@ workflow {
 	processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
 	processA(processAInput, processAInputFiles)
-	processB(processA.out.processAOutput[0], processA.out.processAOutput[1])
-	processC(processA.out.processCInput[0], processA.out.processCInput[1])
-	processD(processA.out.processDInput[0], processA.out.processDInput[1])
+	processB(processA.out.processAOutput)
+	processC(processA.out.processCInput)
+	processD(processA.out.processDInput)
 }
