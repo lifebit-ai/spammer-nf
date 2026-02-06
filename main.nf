@@ -65,9 +65,11 @@ process processA {
 	val x, emit: processCInput
 	val x, emit: processDInput
 	file "*.txt"
+	file "*.html"
 
 	script:
 	"""
+    echo "sample=html file" > sample_1.html
     ls -al
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
