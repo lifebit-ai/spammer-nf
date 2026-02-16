@@ -60,9 +60,9 @@ process processA {
 	path a_file
 
 	output:
-	val x, emit: processAOutput
-	val x, emit: processCInput
-	val x, emit: processDInput
+    tuple val(x), val(a_file.name), emit: processAOutput
+	tuple val(x), val(a_file.name), emit: processCInput
+	tuple val(x), val(a_file.name), emit: processDInput
 	file "*.txt"
 
 	script:
@@ -85,7 +85,7 @@ process processA {
 process processB {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	input:
-	val x
+	tuple val(x), val(filename)
 
 
 	"""
@@ -101,7 +101,7 @@ process processB {
 process processC {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	input: 
-	val x
+	tuple val(x), val(filename)
 
 	"""
 	${params.pre_script}
@@ -116,7 +116,7 @@ process processC {
 process processD {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	input: 
-	val x
+	tuple val(x), val(filename)
 
 	"""
 	${params.pre_script}
