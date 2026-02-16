@@ -46,6 +46,8 @@ log.info "google.lifeSciences.sshDaemon         : ${params.gls_sshDaemon}"
 }
 log.info ""
 
+log.info "Nested Params from Params file: ${params.spammer_nf_params_from_file}"
+
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
