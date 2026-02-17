@@ -52,7 +52,6 @@ processAWriteToDiskMb = params.processAWriteToDiskMb
 
 
 process processA {
-	debug true
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${params.cloud_storage_file}"
 
@@ -61,7 +60,7 @@ process processA {
 	path a_file
 
 	output:
-  tuple val(x), val(a_file.name), emit: processAOutput
+    tuple val(x), val(a_file.name), emit: processAOutput
 	tuple val(x), val(a_file.name), emit: processCInput
 	tuple val(x), val(a_file.name), emit: processDInput
 	file "*.txt"
@@ -136,8 +135,6 @@ process processD {
 workflow {
 	processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 	processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
-
-exit(-1, 'testing pipeline failure')
 
 	processA(processAInput, processAInputFiles)
 	processB(processA.out.processAOutput)
