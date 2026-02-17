@@ -68,7 +68,6 @@ process processA {
 
     script:
 	"""
-	hello_command.sh
     echo "sample=html file" > sample_1.html
     ls -al
 	${params.pre_script}
