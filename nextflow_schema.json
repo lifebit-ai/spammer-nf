@@ -1,176 +1,164 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
-    "title": ". pipeline parameters",
-    "description": "A stampede of processes at your fingertips",
-    "type": "object",
-    "definitions": {
-        "input_output_options": {
-            "title": "Input/output options",
-            "type": "object",
-            "fa_icon": "fas fa-terminal",
-            "description": "Define where the pipeline should find input data and save output data.",
-            "properties": {}
-        },
-        "reference_genome_options": {
-            "title": "Reference genome options",
-            "type": "object",
-            "fa_icon": "fas fa-dna",
-            "description": "Options for the reference genome indices used to align reads.",
-            "properties": {}
-        },
-        "generic_options": {
-            "title": "Generic options",
-            "type": "object",
-            "fa_icon": "fas fa-file-import",
-            "description": "Less common options for the pipeline, typically set in a config file.",
-            "help_text": "These options are common to all nf-core pipelines and allow you to customise some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
-            "properties": {}
-        },
-        "max_job_request_options": {
-            "title": "Max job request options",
-            "type": "object",
-            "fa_icon": "fab fa-acquisitions-incorporated",
-            "description": "Set the top limit for requested resources for any single job.",
-            "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
-            "properties": {}
-        },
-        "institutional_config_options": {
-            "title": "Institutional config options",
-            "type": "object",
-            "fa_icon": "fas fa-university",
-            "description": "Parameters used to describe centralised config profiles. These should not be edited.",
-            "help_text": "The centralised nf-core configuration profiles use a handful of pipeline parameters to describe themselves. This information is then printed to the Nextflow log when you run a pipeline. You should not need to change these values when you run a pipeline.",
-            "properties": {}
-        }
-    },
-    "allOf": [
-        {
-            "$ref": "#/definitions/input_output_options"
-        },
-        {
-            "$ref": "#/definitions/reference_genome_options"
-        },
-        {
-            "$ref": "#/definitions/generic_options"
-        },
-        {
-            "$ref": "#/definitions/max_job_request_options"
-        },
-        {
-            "$ref": "#/definitions/institutional_config_options"
-        }
-    ],
-    "properties": {
-        "mainScript": {
-            "type": "string",
-            "default": "main.nf"
-        },
-        "defaultBranch": {
-            "type": "string",
-            "default": "stage-s3-files"
-        },
-        "config": {
-            "type": "string",
-            "default": "conf/standard.config"
-        },
-        "dataLocation": {
-            "type": "string",
-            "default": "s3://lifebit-featured-datasets/pipelines/spammer-nf/input_files"
-        },
-        "fileSuffix": {
-            "type": "string"
-        },
-        "repsProcessA": {
-            "type": "integer",
-            "default": 2
-        },
-        "processAWriteToDiskMb": {
-            "type": "integer",
-            "default": 10
-        },
-        "processATimeRange": {
-            "type": "string",
-            "default": "1-2"
-        },
-        "filesProcessA": {
-            "type": "integer",
-            "default": 1
-        },
-        "processATimeBetweenFileCreationInSecs": {
-            "type": "integer",
-            "default": 0
-        },
-        "processBTimeRange": {
-            "type": "string",
-            "default": "2-3"
-        },
-        "processBWriteToDiskMb": {
-            "type": "integer",
-            "default": 10
-        },
-        "processCTimeRange": {
-            "type": "string",
-            "default": "2-3"
-        },
-        "processDTimeRange": {
-            "type": "string",
-            "default": "2-3"
-        },
-        "output": {
-            "type": "string",
-            "default": "results"
-        },
-        "echo": {
-            "type": "string"
-        },
-        "cpus": {
-            "type": "integer",
-            "default": 1
-        },
-        "processA_cpus": {
-            "type": "integer",
-            "default": 1
-        },
-        "errorStrategy": {
-            "type": "string",
-            "default": "ignore"
-        },
-        "container": {
-            "type": "string",
-            "default": "quay.io/lifebitai/ubuntu:18.10"
-        },
-        "maxForks": {
-            "type": "integer",
-            "default": 200
-        },
-        "queueSize": {
-            "type": "integer",
-            "default": 200
-        },
-        "executor": {
-            "type": "string",
-            "default": "ignite"
-        },
-        "gls_bootDiskSize": {
-            "type": "string",
-            "default": "50.GB"
-        },
-        "gls_preemptible": {
-            "type": "string",
-            "default": "true"
-        },
-        "zone": {
-            "type": "string",
-            "default": "us-east1-b"
-        },
-        "network": {
-            "type": "string",
-            "default": "default"
-        },
-        "subnetwork": {
-            "type": "string",
-            "default": "default"
-        }
-    }
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://raw.githubusercontent.com/cgetd/cgetd-processing-nf/master/nextflow_schema.json",
+  "title": "cgetd/cgetd-processing-nf pipeline parameters",
+  "description": "CGET downstream is a pipeline that performs statistic analysis of bulk RNA-Seq data like differential expression analysis, GSEA, saturation curves or NMF.",
+  "type": "object",
+  "definitions": {
+      "input_settings": {
+          "title": "Input settings",
+          "type": "object",
+          "description": "",
+          "default": "",
+          "properties": {
+              "metadata": {
+                  "type": "string",
+                  "default": "[name:null, group:null, description:null, samplesheetFile:null, author:null, outputDir:null, rnaSeqProtocol:null, rnaSeqPipeline:null, rnaSeqPipelineVersion:null, species:null, referenceGenome:null, geneAnnotationProvider:null, geneAnnotationVersion:null, gtfFile:null, genestackToken:null, removeOutlier:null]",
+                  "description": "Contains details about the gene expression experiment, including sample information, sequencing protocol, reference genome, and key contacts."
+              },
+              "analyses": {
+                  "type": "string",
+                  "default": "[sampleSimilarity:[[id:null, metadata:[name:null, group:null, description:null], settings:[transformType:null, geneFilter:null, sampleFilter:null]]], saturationCurves:[[id:null, metadata:[name:null, group:null, description:null], settings:[]]], dge:[[id:null, metadata:[name:null, group:null, description:null], settings:[algorithm:null, type:null, formula:null, geneFilter:null, sampleFilter:null, relevelVars:null, coef:null, contrasts:null]]], nmf:[[id:null, metadata:[name:null, group:null, description:null], settings:[ranks:null, geneFilter:null, sampleFilter:null]]]]",
+                  "description": "Defines specific analyses performed on the dataset, such as differential gene expression, sample similarity, and non-negative matrix factorization, with settings for each method."
+              },
+              "metaAnalyses": {
+                  "type": "string",
+                  "default": "[gsea:[metadata:[name:null, description:null], settings:[algorithm:null, geneSets:[hallmarks:null]]], shinyApp:[metadata:[name:null, description:null], settings:[sampleGroups:null]], report:[metadata:[name:null, description:null], settings:[sampleGroups:null, dgeResFDRcutoff:null, dgeResFCcutoff:null, gageResQvalcutoff:null, dgePlotsStatic:null]]]",
+                  "description": "Specifies meta-analysis methods like gene set enrichment analysis, reporting, and interactive apps, along with settings for pathways and gene sets."
+              }
+          },
+          "required": [
+              "metadata",
+              "analyses",
+              "metaAnalyses"
+          ]
+      },
+      "generic_options": {
+          "title": "Generic options",
+          "type": "object",
+          "fa_icon": "fas fa-file-import",
+          "description": "Less common options for the pipeline, typically set in a config file.",
+          "help_text": "These options are common to all nf-core pipelines and allow you to customise some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
+          "properties": {
+              "publish_dir_mode": {
+                  "type": "string",
+                  "default": "copy",
+                  "description": "Method used to save pipeline results to output directory.",
+                  "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
+                  "fa_icon": "fas fa-copy",
+                  "enum": [
+                      "symlink",
+                      "rellink",
+                      "link",
+                      "copy",
+                      "copyNoFollow",
+                      "move"
+                  ],
+                  "hidden": true
+              },
+              "monochrome_logs": {
+                  "type": "boolean",
+                  "description": "Do not use coloured log outputs.",
+                  "fa_icon": "fas fa-palette",
+                  "hidden": true
+              },
+              "tracedir": {
+                  "type": "string",
+                  "description": "Directory to keep pipeline Nextflow logs and reports.",
+                  "default": "${params.outdir}/pipeline_info",
+                  "fa_icon": "fas fa-cogs",
+                  "hidden": true
+              },
+              "validate_params": {
+                  "type": "boolean",
+                  "description": "Boolean whether to validate parameters against the schema at runtime",
+                  "fa_icon": "fas fa-check-square",
+                  "hidden": true
+              },
+              "show_hidden_params": {
+                  "type": "boolean",
+                  "fa_icon": "far fa-eye-slash",
+                  "description": "Show all params when using `--help`",
+                  "hidden": true,
+                  "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
+              },
+              "enable_conda": {
+                  "type": "boolean",
+                  "description": "Run this workflow with Conda. You can also use '-profile conda' instead of providing this parameter.",
+                  "hidden": true,
+                  "fa_icon": "fas fa-bacon"
+              },
+              "outdir": {
+                  "type": "string",
+                  "description": "Path to desired output directory. Can be local or S3 bucket paths. Gets its value from metadata.outputDir from the params-file."
+              },
+              "reports_dir": {
+                  "type": "string",
+                  "default": "./reports",
+                  "description": "Specify custom report output directory"
+              },
+              "email": {
+                "type": "string",
+                "description": "Email address for completion summary.",
+                "fa_icon": "fas fa-envelope",
+                "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
+                "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
+            },
+              "help": {
+                  "type": "boolean",
+                  "description": "Print help message"
+              }
+          }
+      },
+      "optional_arguments": {
+          "title": "Optional arguments",
+          "type": "object",
+          "fa_icon": "fas fa-terminal",
+          "description": "Define the analysis, these are set in the config file",
+          "properties": {
+              "skip_nmf": {
+                  "type": "boolean",
+                  "description": "Should Non/negative Matrix Factorization (NMF) be skipped."
+              },
+              "id": {
+                  "type": "string",
+                  "description": "params-file:'pipelineConfig' id",
+                  "hidden": true
+              },
+              "version": {
+                "type": "string",
+                "description": "params-file:'pipelineConfig' version",
+                "hidden": true
+            },
+              "xenograft": {
+                  "title": "Locate CGET expression values based on species prefix. Default: false",
+                  "type": "boolean",
+                  "description": "Locate CGET expression values based on species prefix"
+              },
+              "no_ipa": {
+                  "type": "boolean",
+                  "description": "Should IPA be skipped"
+              },
+              "no_report": {
+                  "type": "boolean",
+                  "description": "Should report be skipped"
+              },
+              "convert_rdata_txt": {
+                  "type": "boolean",
+                  "description": "Convert Rdata files to txt (for nf-test only)"
+              }
+          }
+      }
+  },
+  "allOf": [
+      {
+          "$ref": "#/definitions/input_settings"
+      },
+      {
+          "$ref": "#/definitions/generic_options"
+      },
+      {
+          "$ref": "#/definitions/optional_arguments"
+      }
+  ]
 }
