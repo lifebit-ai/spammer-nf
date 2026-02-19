@@ -29,7 +29,7 @@
     },
     "container": {
       "type": "string",
-      "default": "quay.io/lifebitai/ubuntu:22.04"
+      "default": "ubuntu:22.04"
     },
     "executor": {
       "type": "string",
