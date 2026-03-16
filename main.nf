@@ -49,26 +49,20 @@ log.info ""
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
-processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 
-def pattern = params.dataLocation.endsWith('/*')
-  ? "${params.dataLocation}${params.fileSuffix ?: ''}"
-  : "${params.dataLocation}/*${params.fileSuffix ?: ''}"
-
-processAInputFiles = Channel.fromPath(pattern, checkIfExists: true).take( numberRepetitionsForProcessA )
 
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
-	tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
+	tag "cpus: ${task.cpus}, cloud storage: ${params.cloud_storage_file}"
 
 	input:
-	val x from processAInput
-	file(a_file) from processAInputFiles
+	val x
+	path a_file
 
 	output:
-    tuple val(x), val(a_file.name) into processAOutput
-	tuple val(x), val(a_file.name) into processCInput
-	tuple val(x), val(a_file.name) into processDInput
+	tuple val(x), val(a_file.name), emit: processAOutput
+	tuple val(x), val(a_file.name), emit: processCInput
+	tuple val(x), val(a_file.name), emit: processDInput
 	file "*.txt"
 
 	script:
@@ -90,9 +84,9 @@ process processA {
 
 process processB {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
-
 	input:
-	tuple val(x), val(filename) from processAOutput
+	tuple val(x), val(filename)
+
 
 	"""
 	${params.pre_script}
@@ -106,9 +100,8 @@ process processB {
 
 process processC {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
-
 	input: 
-	tuple val(x), val(filename) from processCInput
+	tuple val(x), val(filename)
 
 	"""
 	${params.pre_script}
@@ -122,9 +115,8 @@ process processC {
 
 process processD {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
-
 	input: 
-	tuple val(x), val(filename) from processDInput
+	tuple val(x), val(filename)
 
 	"""
 	${params.pre_script}
@@ -133,4 +125,20 @@ process processD {
     sleep \$timeToWait
 	${params.post_script}
 	"""
+}
+
+
+workflow {
+	processAInput = Channel.from([1] * numberRepetitionsForProcessA)
+
+  def pattern = params.dataLocation.endsWith('/*')
+    ? "${params.dataLocation}${params.fileSuffix ?: ''}"
+    : "${params.dataLocation}/*${params.fileSuffix ?: ''}"
+
+  processAInputFiles = Channel.fromPath(pattern, checkIfExists: true).take( numberRepetitionsForProcessA )
+
+	processA(processAInput, processAInputFiles)
+	processB(processA.out.processAOutput)
+	processC(processA.out.processCInput)
+	processD(processA.out.processDInput)
 }
