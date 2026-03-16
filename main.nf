@@ -130,10 +130,16 @@ process processD {
 
 workflow {
 	processAInput = Channel.from([1] * numberRepetitionsForProcessA)
-	processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
+
+  def pattern = params.dataLocation.endsWith('/*')
+    ? "${params.dataLocation}${params.fileSuffix ?: ''}"
+    : "${params.dataLocation}/*${params.fileSuffix ?: ''}"
+
+  processAInputFiles = Channel.fromPath(pattern, checkIfExists: true).take( numberRepetitionsForProcessA )
 
 	processA(processAInput, processAInputFiles)
 	processB(processA.out.processAOutput)
 	processC(processA.out.processCInput)
 	processD(processA.out.processDInput)
 }
+
