@@ -73,18 +73,18 @@ process processA {
 
 	script:
 	"""
-	${params.pre_script}
-	# Simulate the time the processes takes to finish
-	pwd=`basename \${PWD} | cut -c1-6`
-	echo \$pwd
-	timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
-	for i in {1..${numberFilesForProcessA}};
-	do head -c ${processAWriteToDiskMb}MB /dev/urandom > "\${pwd}"_file_\${i}.txt
-	sleep ${params.processATimeBetweenFileCreationInSecs}
-	done;
-	sleep \$timeToWait
-	echo "task cpus: ${task.cpus}"
-	${params.post_script}
+    ${params.pre_script}
+    # Simulate the time the processes takes to finish
+    pwd=`basename \${PWD} | cut -c1-6`
+    echo \$pwd
+    timeToWait=\$(shuf -i ${params.processATimeRange} -n 1)
+    for i in {1..${numberFilesForProcessA}};
+    do head -c ${processAWriteToDiskMb}MB /dev/urandom > "\${pwd}"_file_\${i}.txt
+    sleep ${params.processATimeBetweenFileCreationInSecs}
+    done;
+    sleep \$timeToWait
+    echo "task cpus: ${task.cpus}"
+    ${params.post_script}
 	"""
 }
 
