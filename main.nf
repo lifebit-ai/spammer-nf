@@ -50,7 +50,12 @@ numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
-processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
+
+def pattern = params.dataLocation.endsWith('/*')
+  ? "${params.dataLocation}${params.fileSuffix ?: ''}"
+  : "${params.dataLocation}/*${params.fileSuffix ?: ''}"
+
+processAInputFiles = Channel.fromPath(pattern, checkIfExists: true).take( numberRepetitionsForProcessA )
 
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
