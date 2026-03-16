@@ -60,7 +60,7 @@ process processA {
 	path a_file
 
 	output:
-    tuple val(x), val(a_file.name), emit: processAOutput
+  tuple val(x), val(a_file.name), emit: processAOutput
 	tuple val(x), val(a_file.name), emit: processCInput
 	tuple val(x), val(a_file.name), emit: processDInput
 	file "*.txt"
@@ -142,4 +142,3 @@ workflow {
 	processC(processA.out.processCInput)
 	processD(processA.out.processDInput)
 }
-
