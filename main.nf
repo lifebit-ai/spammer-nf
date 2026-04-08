@@ -120,6 +120,7 @@ process processD {
 
 	"""
 	${params.pre_script}
+exit -1
     # Simulate the time the processes takes to finish
     timeToWait=\$(shuf -i ${params.processDTimeRange} -n 1)
     sleep \$timeToWait
