@@ -51,7 +51,7 @@ numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
 
 
-exit -1
+exit(-1)
 
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
