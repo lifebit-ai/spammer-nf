@@ -51,6 +51,8 @@ numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
 
 
+exit -1
+
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${params.cloud_storage_file}"
@@ -120,7 +122,6 @@ process processD {
 
 	"""
 	${params.pre_script}
-exit -1
     # Simulate the time the processes takes to finish
     timeToWait=\$(shuf -i ${params.processDTimeRange} -n 1)
     sleep \$timeToWait
