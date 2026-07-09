@@ -52,10 +52,8 @@ log.info ""
 numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
-processAInput = Channel.from([1] * numberRepetitionsForProcessA)
-processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
-	.first()
-	.flatMap { file -> Channel.from([file] * numberRepetitionsForProcessA) }
+processAInput = Channel.from(1..numberRepetitionsForProcessA)
+processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").first()
 
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
