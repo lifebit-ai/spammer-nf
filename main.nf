@@ -53,7 +53,8 @@ numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
-processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}", limit: 1)
+processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}")
+	.first()
 	.flatMap { file -> Channel.from([file] * numberRepetitionsForProcessA) }
 
 process processA {
