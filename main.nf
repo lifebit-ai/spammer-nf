@@ -28,6 +28,9 @@ log.info "queueSize                             : ${params.queueSize}"
 log.info "pre_script                            : ${params.pre_script}"
 log.info "post_script                           : ${params.post_script}"
 log.info "executor                              : ${params.executor}"
+log.info "queue                                 : ${params.queue}"
+log.info "autopool_instance_type                : ${params.autopool_instance_type}"
+log.info "named_pool_instance_type              : ${params.named_pool_instance_type}"
 if(params.executor == 'awsbatch') {
 log.info "aws_batch_cliPath                     : ${params.aws_batch_cliPath}"
 log.info "aws_batch_fetchInstanceType           : ${params.aws_batch_fetchInstanceType}"
@@ -50,7 +53,8 @@ numberRepetitionsForProcessA = params.repsProcessA
 numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
-processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
+processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}", limit: 1)
+	.flatMap { file -> Channel.from([file] * numberRepetitionsForProcessA) }
 
 process processA {
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
