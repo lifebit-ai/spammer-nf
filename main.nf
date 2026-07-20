@@ -51,9 +51,7 @@ numberFilesForProcessA = params.filesProcessA
 processAWriteToDiskMb = params.processAWriteToDiskMb
 processAInput = Channel.from([1] * numberRepetitionsForProcessA)
 
-def pattern = params.dataLocation.endsWith('/*')
-  ? "${params.dataLocation}${params.fileSuffix ?: ''}"
-  : "${params.dataLocation}/*${params.fileSuffix ?: ''}"
+def pattern =  "${params.dataLocation}${params.fileSuffix ?: ''}"
 
 processAInputFiles = Channel.fromPath(pattern, checkIfExists: true).take( numberRepetitionsForProcessA )
 
