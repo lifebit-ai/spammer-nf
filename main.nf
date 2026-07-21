@@ -68,7 +68,9 @@ process processA {
 
 	script:
 	"""
-	sleep 300
+	df -Th
+    lsblk
+    #sleep 300
 	${params.pre_script}
 	# Simulate the time the processes takes to finish
 	pwd=`basename \${PWD} | cut -c1-6`
