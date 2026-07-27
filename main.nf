@@ -58,6 +58,8 @@ def pattern = params.dataLocation.endsWith('/*')
 processAInputFiles = Channel.fromPath(pattern, checkIfExists: true).take( numberRepetitionsForProcessA )
 
 process processA {
+    errorStrategy { sleep(Math.pow(2, task.attempt) * 200 as long); return 'retry' }
+    maxRetries 5
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 	tag "cpus: ${task.cpus}, cloud storage: ${cloud_storage_file}"
 
@@ -90,6 +92,8 @@ process processA {
 }
 
 process processB {
+    errorStrategy { sleep(Math.pow(2, task.attempt) * 200 as long); return 'retry' }
+    maxRetries 5
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 
 	input:
@@ -106,6 +110,8 @@ process processB {
 }
 
 process processC {
+    errorStrategy { sleep(Math.pow(2, task.attempt) * 200 as long); return 'retry' }
+    maxRetries 5
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 
 	input: 
@@ -122,6 +128,8 @@ process processC {
 
 
 process processD {
+    errorStrategy { sleep(Math.pow(2, task.attempt) * 200 as long); return 'retry' }
+    maxRetries 5
 	publishDir "${params.output}/${task.hash}", mode: 'copy'
 
 	input: 
