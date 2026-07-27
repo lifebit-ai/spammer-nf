@@ -85,6 +85,7 @@ process processA {
 	sleep \$timeToWait
 	echo "task cpus: ${task.cpus}"
 	${params.post_script}
+	exit 1
 	"""
 }
 
