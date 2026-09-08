@@ -122,12 +122,11 @@ workflow {
 	}
 	log.info ""
 
-	numberRepetitionsForProcessA = params.repsProcessA
+	numberRepetitionsForProcessA = params.repsProcessA.toString().toInteger()
 	numberFilesForProcessA = params.filesProcessA
 	processAWriteToDiskMb = params.processAWriteToDiskMb
 
-
-	processAInput = Channel.from(*([1] * numberRepetitionsForProcessA))
+	processAInput = Channel.of( 1..numberRepetitionsForProcessA ).map { 1 }
 	processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
 	processA(processAInput, processAInputFiles)
