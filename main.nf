@@ -21,6 +21,9 @@ process processA {
 	${params.pre_script}
 	echo "task cpus: ${task.cpus}"
 	ls -al
+
+    echo "listing /file-systems/arn:aws:s3:eu-west-1:381492210762:accesspoint/qa-access-point-test/"
+    ls -al /file-systems/arn:aws:s3:eu-west-1:381492210762:accesspoint/qa-access-point-test/ || echo true
 	${params.post_script}
 	echo "welcome" > a.txt
 	"""
