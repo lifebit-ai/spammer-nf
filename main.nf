@@ -33,6 +33,7 @@ process processB {
 
 	script:
 	"""
+	exit -1
 	${params.pre_script}
     # Simulate the time the processes takes to finish
     timeToWait=\$(shuf -i ${params.processBTimeRange} -n 1)
