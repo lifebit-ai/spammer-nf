@@ -76,6 +76,33 @@ process processD {
 	"""
 }
 
+process makeHtmlReport {
+	publishDir "${params.output}", mode: 'copy'
+	input:
+	val done
+
+	output:
+	path 'multiqc_report.html'
+
+	script:
+	"""
+	cat > multiqc_report.html << 'EOF'
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	  <meta charset="utf-8">
+	  <title>Spammer NF Report</title>
+	</head>
+	<body>
+	  <h1>Spammer NF Report</h1>
+	  <p>DSL2 HTML report for CloudOS Report tab (LP-116931 S20).</p>
+	  <p>Pipeline completed processA and downstream tasks.</p>
+	</body>
+	</html>
+	EOF
+	"""
+}
+
 
 workflow {
 	fileSystem = params.dataLocation.contains(':') ? params.dataLocation.split(':')[0] : 'local'
@@ -136,4 +163,5 @@ workflow {
 	processB(processA.out.processAOutput)
 	processC(processA.out.processCInput)
 	processD(processA.out.processDInput)
+	makeHtmlReport(processA.out.processAOutput.collect())
 }
