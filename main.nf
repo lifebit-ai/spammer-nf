@@ -29,7 +29,7 @@ process processA {
 }
 
 process processB {
-	publishDir { "${params.output}/${task.hash}" }, mode: 'copy'
+//	publishDir { "${params.output}/${task.hash}" }, mode: 'copy'
 	input:
 	val x
 
@@ -45,7 +45,7 @@ process processB {
 }
 
 process processC {
-	publishDir { "${params.output}/${task.hash}" }, mode: 'copy'
+	//publishDir { "${params.output}/${task.hash}" }, mode: 'copy'
 	input: 
 	val x
 
@@ -61,7 +61,7 @@ process processC {
 
 
 process processD {
-	publishDir { "${params.output}/${task.hash}" }, mode: 'copy'
+//	publishDir { "${params.output}/${task.hash}" }, mode: 'copy'
 	input: 
 	val x
 
