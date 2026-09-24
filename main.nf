@@ -3,7 +3,6 @@
 
 process processA {
 	debug true
-	publishDir { "${params.output}/${task.hash}" }, mode: 'copy'
 	tag { "cpus: ${task.cpus}, cloud storage" }
 
 	input:
