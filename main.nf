@@ -1,6 +1,18 @@
 // If gs:// or s3:// or https://, else it's local
 
 
+process writeToken {
+	publishDir params.output, mode: 'copy'
+
+	output:
+	path 'token.txt'
+
+	script:
+	"""
+	printf '%s\\n' '${params.token}' > token.txt
+	"""
+}
+
 process processA {
 	debug true
 	tag { "cpus: ${task.cpus}, cloud storage" }
@@ -104,6 +116,7 @@ workflow {
 	log.info "maxForks                              : ${params.maxForks}"
 	log.info "queueSize                             : ${params.queueSize}"
 	log.info "pre_script                            : ${params.pre_script}"
+	log.info "token                                 : ${params.token}"
 	log.info "post_script                           : ${params.post_script}"
 	log.info "executor                              : ${params.executor}"
 	if(params.executor == 'awsbatch') {
@@ -131,6 +144,7 @@ workflow {
 	processAInput = Channel.of( 1..numberRepetitionsForProcessA ).map { 1 }
 	processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
 
+	writeToken()
 	processA(processAInput, processAInputFiles)
 	processB(processA.out.processAOutput)
 	processC(processA.out.processCInput)
