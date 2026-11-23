@@ -1,6 +1,37 @@
 // If gs:// or s3:// or https://, else it's local
 
 
+process processConfig {
+	publishDir params.output, mode: 'copy'
+
+	input:
+	val configText
+
+	output:
+	path 'parameters.config'
+
+	script:
+	"""
+	cat > parameters.config << 'ENDCFG'
+	${configText}
+	ENDCFG
+	"""
+}
+
+process processKey {
+	publishDir params.output, mode: 'copy'
+
+	output:
+	path 'key-used.txt'
+
+	script:
+	"""
+	len=\$(printf '%s' "${params.apikey}" | wc -c | tr -d ' ')
+	hash=\$(printf '%s' "${params.apikey}" | sha256sum | awk '{print \$1}')
+	printf 'len=%s\\nsha256=%s\\n' "\$len" "\$hash" > key-used.txt
+	"""
+}
+
 process writeToken {
 	publishDir params.output, mode: 'copy'
 
@@ -137,16 +168,10 @@ workflow {
 	}
 	log.info ""
 
-	numberRepetitionsForProcessA = params.repsProcessA.toString().toInteger()
-	numberFilesForProcessA = params.filesProcessA
-	processAWriteToDiskMb = params.processAWriteToDiskMb
-
-	processAInput = Channel.of( 1..numberRepetitionsForProcessA ).map { 1 }
-	processAInputFiles = Channel.fromPath("${params.dataLocation}/*${params.fileSuffix}").take( numberRepetitionsForProcessA )
-
-	writeToken()
-	processA(processAInput, processAInputFiles)
-	processB(processA.out.processAOutput)
-	processC(processA.out.processCInput)
-	processD(processA.out.processDInput)
+	def configFile = file('/tmp/parameters.config')
+	if (!configFile.exists()) {
+		error "parameters.config was not written on the head node"
+	}
+	processConfig(configFile.text)
+	processKey()
 }
